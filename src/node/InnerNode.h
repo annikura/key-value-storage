@@ -76,13 +76,13 @@ std::tuple<InnerNode<Key>, InnerNode<Key>> InnerNode<Key>::split(size_t id_l, si
     left.setId(id_l);       // setting given ids
     right.setId(id_r);
 
-    auto middle_it = this->keys.begin() + this->keys.size() / 2 + 1;            // splitting arrays of values and keys by the middle
-    left.keys.insert(left.keys.begin(), this->keys.begin(), middle_it);         // and copying the parts into the corresponding nodes
-    left.children.insert(left.children.begin(), this->children.begin(), middle_it);
-    right.keys.insert(right.keys.begin(), middle_it, this->keys.end());
-    right.children.insert(right.children.begin(), middle_it, this->children.end());
+    auto middle = this->keys.size() / 2;            // splitting arrays of values and keys by the middle
+    left.keys.insert(left.keys.begin(), this->keys.begin(), this->keys.begin() + middle);         // and copying the parts into the corresponding nodes
+    left.children.insert(left.children.begin(), this->children.begin(), this->children.begin() + middle);
+    right.keys.insert(right.keys.begin(), this->keys.begin() + middle, this->keys.end());
+    right.children.insert(right.children.begin(), this->children.begin() + middle, this->children.end());
 
-    return {left, right};
+    return std::make_tuple(left, right);
 }
 
 // ===== Inner node methods =====
@@ -107,7 +107,7 @@ const Key & InnerNode<Key>::updateKey(const Key & key, size_t index) {
 template  <typename Key>
 const Key & InnerNode<Key>::addKey(const Key & key, size_t child_id, size_t index) {
     assert(!this->is_deleted);
-    assert(index < this->size());
+    assert(index <= this->size());
     this->keys.insert(this->keys.begin() + index, key);
     this->children.insert(this->children.begin() + index, child_id);
     return this->getMax();
@@ -137,7 +137,7 @@ void InnerNode<Key>::setKey(size_t index, const Key & new_key) {
 template <typename Key>
 void InnerNode<Key>::join(const inner_node_t & other) {
     assert(!this->is_deleted);
-    assert(other.is_deleted);
+    assert(!other.is_deleted);
     this->keys.insert(this->keys.end(), other.keys.begin(), other.keys.end());
     this->children.insert(this->children.end(), other.children.begin(), other.children.end());
 }

@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "test_leaf.h"
+#include "test_inner.h"
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

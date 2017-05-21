@@ -14,7 +14,7 @@ set(SOURCE_FILES src/library.cpp
 
 set(TEST_SOURCES tests/test_all.cpp)
 
-add_executable(tests ${SOURCE_FILES} tests/test_all.cpp tests/test_leaf.h)
+add_executable(tests ${SOURCE_FILES} tests/test_all.cpp tests/test_leaf.h tests/test_inner.h)
 add_library(term_project ${SOURCE_FILES})
 
 target_link_libraries(tests gtest)
