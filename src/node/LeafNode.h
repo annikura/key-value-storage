@@ -6,15 +6,16 @@
 #define TERM_PROJECT_LEAFNODE_H
 
 #include <cassert>
+#include <iostream>
 #include "BaseNodeClass.h"
 
 template <typename Key, typename Value, typename ValueStorage>
-class LeafNode : public BaseNodeClass<Key, LeafNode<Key, Value, ValueStorage>>{
+class LeafNode : public BaseNodeClass<Key>{
 protected:
     typedef LeafNode<Key, Value,  ValueStorage> leaf_node_t;
-    typedef BaseNodeClass<Key, leaf_node_t> super_t;
+    typedef BaseNodeClass<Key> super_t;
 
-    std::vector<size_t > values;
+    std::vector<size_t> values;
     size_t next = -1, prev = -1;
     static ValueStorage value_storage;
 public:
@@ -25,7 +26,7 @@ public:
 
     bool isLeaf() const override;
 
-    std::tuple<leaf_node_t, leaf_node_t> split(size_t id_l, size_t id_r) const override;
+    std::tuple<leaf_node_t, leaf_node_t> split(size_t id_l, size_t id_r) const;
 
 // ===== Leaf node methods =====
 
@@ -37,11 +38,14 @@ public:
     Value getValue(size_t index) const;
     void setValue(const Value & value, size_t index);
 
-    const Key & addKey(size_t  index, size_t val_id, const Key & key, const Value & value); // both are returning new max key in the node
-    const Key & deleteKey(size_t index); // if there is no key left, return the deleted key
+    void addKey(size_t  index, size_t val_id, const Key & key, const Value & value);
+    void deleteKey(size_t index);
 
     void join(const leaf_node_t & other);
 };
+
+template <typename Key, typename Value, typename ValueStorage>
+ValueStorage LeafNode<Key, Value, ValueStorage>::value_storage;
 
 template <typename Key, typename Value, typename ValueStorage>
 LeafNode<Key, Value, ValueStorage>::LeafNode() :
@@ -101,13 +105,13 @@ std::tuple<LeafNode<Key, Value, ValueStorage>,
     right.prev = id_l;
     right.next = next;
 
-    auto middle_it = this->keys.begin() + this->keys.size() / 2 + 1;            // splitting arrays of values and keys by the middle
-    left.keys.insert(left.keys.begin(), this->keys.begin(), middle_it);         // and copying the parts into the corresponding nodes
-    left.values.insert(left.values.begin(), this->values.begin(), middle_it);
-    right.keys.insert(right.keys.begin(), middle_it, this->keys.end());
-    right.values.insert(right.values.begin(), middle_it, this->values.end());
+    size_t middle = this->keys.size() / 2;            // splitting arrays of values and keys by the middle
+    left.keys.insert(left.keys.begin(), this->keys.begin(), this->keys.begin() + middle);         // and copying the parts into the corresponding nodes
+    left.values.insert(left.values.begin(), this->values.begin(), this->values.begin() + middle);
+    right.keys.insert(right.keys.begin(), this->keys.begin() + middle, this->keys.end());
+    right.values.insert(right.values.begin(), this->values.begin() + middle, this->values.end());
 
-    return {left, right};
+    return std::make_tuple(left, right);
 }
 
 // ===== Leaf node methods =====
@@ -150,34 +154,29 @@ template <typename Key, typename Value, typename ValueStorage>
 void LeafNode<Key, Value, ValueStorage>::setValue(const Value & value, size_t index) {
     assert(index < values.size());
     assert(!this->is_deleted);
-    value_storage.insert_or_assign(values[index], value);
+
+    auto it = this->value_storage.find(values[index]);
+    if (it != this->value_storage.end())
+        this->value_storage.erase(it);
+    this->value_storage.insert(std::make_pair(values[index], value));
 }
 
 template <typename Key, typename Value, typename ValueStorage>
-const Key & LeafNode<Key, Value, ValueStorage>::addKey(size_t index, size_t val_id, const Key & key, const Value & value) {
+void LeafNode<Key, Value, ValueStorage>::addKey(size_t index, size_t val_id, const Key & key, const Value & value) {
     assert(index <= this->keys.size());
     assert(!this->is_deleted);
     this->keys.insert(this->keys.begin() + index, key);
     values.insert(values.begin() + index, val_id);
-    setValue(index, value);
-    return this->getMax();
+    setValue(value, index);
 }
 
 template <typename Key, typename Value, typename ValueStorage>
-const Key & LeafNode<Key, Value, ValueStorage>::deleteKey(size_t index) {
+void LeafNode<Key, Value, ValueStorage>::deleteKey(size_t index) {
     assert(index < this->size());
     assert(!this->is_deleted);
     value_storage.erase(values[index]);
     values.erase(values.begin() + index);
-    if (this->size() > 1) {
-        this->keys.erase(this->keys.begin() + index);
-        return this->getMax();
-    }
-    else {
-        Key key = this->keys[0];
-        this->keys.clear();
-        return key;
-    }
+    this->keys.erase(this->keys.begin() + index);
 }
 
 

@@ -8,10 +8,10 @@
 #include "BaseNodeClass.h"
 
 template <typename Key>
-class InnerNode : public BaseNodeClass<Key, InnerNode<Key>>{
+class InnerNode : public BaseNodeClass<Key>{
 protected:
     typedef InnerNode<Key> inner_node_t;
-    typedef BaseNodeClass<Key, inner_node_t> super_t;
+    typedef BaseNodeClass<Key> super_t;
 
     std::vector<size_t> children;
 public:
@@ -24,7 +24,7 @@ public:
 
     bool isLeaf() const override;
 
-    std::tuple<inner_node_t, inner_node_t> split(size_t id_l, size_t id_r) const override;
+    std::tuple<inner_node_t, inner_node_t> split(size_t id_l, size_t id_r) const;
 
 // ===== Inner node methods =====
 
