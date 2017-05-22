@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.5)
 project(term_project)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -14,7 +14,7 @@ set(SOURCE_FILES src/library.cpp
 
 set(TEST_SOURCES tests/test_all.cpp)
 
-add_executable(tests ${SOURCE_FILES} tests/test_all.cpp tests/test_leaf.h tests/test_inner.h tests/test_btree.h)
+add_executable(test_all ${SOURCE_FILES} tests/test_all.cpp tests/test_leaf.h tests/test_inner.h tests/test_btree.h)
 add_library(term_project ${SOURCE_FILES})
 
-target_link_libraries(tests gtest)
+target_link_libraries(test_all gtest)
