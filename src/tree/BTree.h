@@ -12,7 +12,7 @@
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 class BTree : protected BaseBTreeClass<Key, Value, NodeStorage, ValueStorage>{
 protected:
-    typedef Node<Key, Value, NodeStorage, ValueStorage> BNode;
+    typedef Node<Key, Value, ValueStorage> BNode;
 
     const size_t node_size;
 
@@ -22,17 +22,20 @@ protected:
     std::unordered_map<size_t, BNode> buffer;
     std::unordered_map<size_t, BNode> changes;
 
+    NodeStorage storage;
+
     size_t genNodeId();
     size_t genValueId();
 
     void saveNode(const BNode & node);
     void delNode(BNode & node);
+    void commit(const BNode & node);
 
     BNode getNode(size_t id);
     BNode getNode(size_t index) const; // Doesn't buffer nodes
 
-    const Key & normalizeNodeShortage(BNode & node, size_t index);
-    const Key & normalizeNodeOverflow(BNode & node, size_t index);
+    void normalizeNodeShortage(BNode & node, size_t index);
+    void normalizeNodeOverflow(BNode & node, size_t index);
 
     Key set(BNode node, const Key & key, const Value & value);
     Key del(BNode node, const Key & key);
@@ -42,6 +45,8 @@ protected:
 
     void findNode(const Key & key, BNode & node) const;
 public:
+    void print(BNode node = InnerNode<Key>()) const;
+
     BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz = 512);
     const Value get(const Key & key) const override;
     void set(const Key & key, const Value & value) override;
@@ -49,14 +54,49 @@ public:
     std::vector<std::pair<Key, Value>> & getRange(const Key & left, const Key & right, std::vector<std::pair<Key, Value>> & dest) const override;
 };
 
+//template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
+//NodeStorage BTree<Key, Value, NodeStorage, ValueStorage>::storage;
+
+template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
+size_t BTree<Key, Value, NodeStorage, ValueStorage>::next_node_id = 0;
+
+template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
+size_t BTree<Key, Value, NodeStorage, ValueStorage>::next_value_id = 0;
+
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 size_t BTree<Key, Value, NodeStorage, ValueStorage>::genNodeId() {
-    return this->new_node_id++;
+    return next_node_id++;
+}
+
+template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
+void BTree<Key, Value, NodeStorage, ValueStorage>::print(BNode node) const {
+    if (node.getId() == -1) {
+        node = this->root;
+        std::cerr << "------------------------\n";
+    }
+    std::cerr << "=======\n";
+    std::cerr << "Id: " << node.getId() << " Size: " << node.size() << "\n";
+    if (node.isLeaf()) {
+        std::cerr << "Prev: " << node.getPrev() << " Next: " << node.getNext() << "\n";
+        std::cerr << "Key    Value\n";
+        for (size_t index = 0; index < node.size(); index++)
+            std::cerr << node.getKey(index) <<  " " << node.getValue(index) << std::endl;
+    }
+    else {
+        std::cerr << "Key    Child\n";
+        for (size_t index = 0; index < node.size(); index++)
+            std::cerr << node.getKey(index) <<  " " << node.getChild(index) << std::endl;
+    }
+    std::cerr << "=======\n";
+    if (!node.isLeaf()) {
+        for (size_t index = 0; index < node.size(); index++)
+            print(getNode(node.getChild(index)));
+    }
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 size_t BTree<Key, Value, NodeStorage, ValueStorage>::genValueId() {
-    return this->new_value_id++;
+    return this->next_value_id++;
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -71,70 +111,83 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::delNode(BNode & node) {
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-Node<Key, Value, NodeStorage, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::getNode(size_t id) {
+void BTree<Key, Value, NodeStorage, ValueStorage>::commit(const BNode & node) {
+    auto index = this->storage.find(node.getId());
+    if (index != this->storage.end())
+        this->storage.erase(index);
+    this->storage.insert(std::make_pair(node.getId(), node));
+}
+
+template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
+Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::getNode(size_t id) {
     auto it = changes.find(id);
     if (it != changes.end())
         return it->second;
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
-    return buffer[id] = BNode(id);
+    return buffer[id] = this->storage.find(id)->second;
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-Node<Key, Value, NodeStorage, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::getNode(size_t id) const {  // Doesn't buffer nodes
+Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::getNode(size_t id) const {  // Doesn't buffer nodes
     auto it = changes.find(id);
     if (it != changes.end())
         return it->second;
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
-    return BNode(id);
+    return this->storage.find(id)->second;
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-const Key & BTree<Key, Value, NodeStorage, ValueStorage>::normalizeNodeShortage(BNode & node, size_t index) {
+void BTree<Key, Value, NodeStorage, ValueStorage>::normalizeNodeShortage(BNode & node, size_t index) {
     assert(node.size() > 1);
     if (index == 0)
         index++;
     BNode  left = getNode(node.getChild(index - 1));
     BNode right = getNode(node.getChild(index));
     left.join(right);
-    if (left.size() > node_size) {
+    if (left.size() >= node_size * 2) {
         std::tuple<BNode, BNode> pair = left.split(left.getId(), right.getId());
-        if (left.isLeaf()) {
-            insertIntoList(left);
-            insertIntoList(right);
-        }
-        node.updateKey(index - 1, pair[0].getMax());
+        saveNode(std::get<0>(pair));
+        saveNode(std::get<1>(pair));
 
-        saveNode(pair[0]);
-        saveNode(pair[1]);
+        if (left.isLeaf()) {
+            insertIntoList(std::get<0>(pair));
+            insertIntoList(std::get<1>(pair));
+        }
+        node.updateKey(std::get<0>(pair).getMax(), index - 1);
     }
     else {
-        node.deleteKey(index - 1);
-        node.setChild(index, left.getId());
-        right.setDeleted();
-
         saveNode(left);
         saveNode(right);
+
+        if (left.isLeaf())
+            insertIntoList(left);
+        node.setChild(index, left.getId());
+        node.deleteKey(index - 1);
+        delNode(right);
     }
 
     saveNode(node);
-    return node.getMax();
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-const Key & BTree<Key, Value, NodeStorage, ValueStorage>::normalizeNodeOverflow(BNode & node, size_t index) {
+void  BTree<Key, Value, NodeStorage, ValueStorage>::normalizeNodeOverflow(BNode & node, size_t index) {
     BNode child = getNode(node.getChild(index));
     std::tuple<BNode, BNode> pair = child.split(genNodeId(), child.getId());
-    node.addKey(pair[0].getMax(), pair[0].getId(), index);
+    node.addKey(std::get<0>(pair).getMax(), std::get<0>(pair).getId(), index);
 
-    saveNode(pair[0]);
-    saveNode(pair[1]);
+    saveNode(std::get<0>(pair));
+    saveNode(std::get<1>(pair));
+
+    if (child.isLeaf()) {
+        insertIntoList(std::get<0>(pair));
+        insertIntoList(std::get<1>(pair));
+    }
+
     saveNode(node);
-
-    return node.getMax();
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -150,10 +203,9 @@ Key BTree<Key, Value, NodeStorage, ValueStorage>::set(BNode node, const Key & ke
     }
 
     size_t index = node.find(key, this->comparator);
-    if (index > node.size()) --index;
-    Key mx_key = set(BNode(node.getChild(index)), key, value);
-
-    node.updateKey(mx_key, index);
+    if (index >= node.size()) --index;
+    Key mx_key = set(getNode(node.getChild(index)), key, value);
+    node.updateKey(std::move(mx_key), index);
     BNode child = getNode(node.getChild(index));
     if (child.size() == node_size * 2)
         normalizeNodeOverflow(node, index);
@@ -172,13 +224,13 @@ Key BTree<Key, Value, NodeStorage, ValueStorage>::del(BNode node, const Key & ke
         else
             node.deleteKey(node.find(key, this->comparator));
         saveNode(node);
-        return node.getMax();
+        return node.size() > 0 ? node.getMax() : key;
     }
 
     size_t index = node.find(key, this->comparator);
-    if (index > node.size())
+    if (index >= node.size())
         throw std::runtime_error("del: This key does not exist");
-    Key mx_key = del(BNode(node.getChild(index)), key);
+    Key mx_key = del(getNode(node.getChild(index)), key);
 
     node.updateKey(mx_key, index);
     BNode child = getNode(node.getChild(index));
@@ -187,7 +239,7 @@ Key BTree<Key, Value, NodeStorage, ValueStorage>::del(BNode node, const Key & ke
     else
         saveNode(node);
 
-    return node.getMax();
+    return node.size() > 0 ? node.getMax() : mx_key;
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -218,9 +270,9 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::findNode(const Key & key, BNo
     if (node.isLeaf())
         return;
     size_t index = node.find(key, this->comparator);
-    if (index > node.size())
+    if (index >= node.size())
         throw std::runtime_error("find: This key does not exist");
-    node = BNode(node.getChild(index));
+    node = getNode(node.getChild(index));
     findNode(key, node);
 }
 
@@ -229,7 +281,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::findNode(const Key & key, BNo
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 BTree<Key, Value, NodeStorage, ValueStorage>::BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz)
         : node_size(node_sz),
-        BTree::BTree(cmp, genNodeId()){ }
+        BTree::BaseBTreeClass(cmp, genNodeId()){ commit(this->root); }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 const Value BTree<Key, Value, NodeStorage, ValueStorage>::get(const Key & key) const {
@@ -245,6 +297,7 @@ const Value BTree<Key, Value, NodeStorage, ValueStorage>::get(const Key & key) c
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Value & value) {
     set(this->root, key, value);
+    this->root = getNode(this->root.getId());
 
     if (this->root.size() == node_size * 2) {
         std::tuple<BNode, BNode> pair = this->root.split(genNodeId(), genNodeId());
@@ -252,16 +305,17 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Va
         this->root = BNode(InnerNode<Key>());
         this->root.setId(root_id);
 
-        this->root.addKey(pair[0].getMax(), pair[0].getId(), 0);
-        this->root.addKey(pair[1].getMax(), pair[1].getId(), 1);
+        this->root.addKey(std::get<0>(pair).getMax(), std::get<0>(pair).getId(), 0);
+        this->root.addKey(std::get<1>(pair).getMax(), std::get<1>(pair).getId(), 1);
 
-        saveNode(pair[0]);
-        saveNode(pair[1]);
+        saveNode(std::get<0>(pair));
+        saveNode(std::get<1>(pair));
         saveNode(this->root);
     }
 
-    for (BNode & node: changes)
-        node.commit();
+    for (auto & node: changes)
+        commit(node.second);
+
 
     buffer.clear();
     changes.clear();
@@ -270,18 +324,19 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Va
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 void BTree<Key, Value, NodeStorage, ValueStorage>::del(const Key & key) {
     del(this->root, key);
+    this->root = getNode(this->root.getId());
 
-    if (this->root.size() == 1) {
+    if (!this->root.isLeaf() && this->root.size() == 1) {
         size_t child = this->root.getChild(0);
 
-        this->root.setDeleted();
+        delNode(this->root);
         saveNode(this->root);
 
         this->root = getNode(child);
     }
 
-    for (BNode & node: changes)
-        node.commit();
+    for (auto & node: changes)
+        commit(node.second);
 
     buffer.clear();
     changes.clear();
@@ -291,7 +346,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::del(const Key & key) {
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 std::vector<std::pair<Key, Value>> & BTree<Key, Value, NodeStorage, ValueStorage>::getRange(const Key & left, const Key & right, std::vector<std::pair<Key, Value>> & dest) const {
     BNode node = this->root;
-    findNode(node, left);
+    findNode(left, node);
     while (1) {
         size_t l = node.find(left, this->comparator);
         size_t r = node.find(right, this->comparator);
@@ -299,8 +354,9 @@ std::vector<std::pair<Key, Value>> & BTree<Key, Value, NodeStorage, ValueStorage
             break;
         for (size_t index = l; index < r; ++index)
             dest.push_back(std::make_pair(node.getKey(index), node.getValue(index)));
-        if (node.getNext() == -1)
+        if (node.getNext() == -1 || r < node.size())
             break;
+        node = getNode(node.getNext());
     }
     return dest;
 }

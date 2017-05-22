@@ -21,6 +21,7 @@ public:
     InnerNode();
     InnerNode(const inner_node_t & other);
     InnerNode(inner_node_t && other);
+    InnerNode &operator=(const InnerNode & other) = default;
 
     bool isLeaf() const override;
 

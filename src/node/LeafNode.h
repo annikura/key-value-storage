@@ -23,7 +23,7 @@ public:
     LeafNode();
     LeafNode(const leaf_node_t & other);
     LeafNode(leaf_node_t && other);
-
+    LeafNode & operator=(const LeafNode & other);
     bool isLeaf() const override;
 
     std::tuple<leaf_node_t, leaf_node_t> split(size_t id_l, size_t id_r) const;
@@ -73,6 +73,17 @@ LeafNode<Key, Value, ValueStorage>::LeafNode(leaf_node_t && other) :
     this->keys = std::move(other.keys);
     this->id = other.id;
     this->is_deleted = other.is_deleted;
+}
+
+template <typename Key, typename Value, typename ValueStorage>
+LeafNode<Key, Value, ValueStorage> & LeafNode<Key, Value, ValueStorage>::operator=(const LeafNode & other) {
+    this->keys = other.keys;
+    this->values = other.values;
+    this->id = other.id;
+    this->is_deleted = other.is_deleted;
+    this->next = other.next;
+    this->prev = other.prev;
+    return *this;
 }
 
 template <typename Key, typename Value, typename ValueStorage>
@@ -134,14 +145,11 @@ void LeafNode<Key, Value, ValueStorage>::setNext(size_t id) {
     next = id;
 }
 
-
 template <typename Key, typename Value, typename ValueStorage>
 void LeafNode<Key, Value, ValueStorage>::setPrev(size_t id) {
     assert(!this->is_deleted);
     prev = id;
 }
-
-
 
 template <typename Key, typename Value, typename ValueStorage>
 Value LeafNode<Key, Value, ValueStorage>::getValue(size_t index) const {

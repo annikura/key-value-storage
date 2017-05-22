@@ -6,6 +6,7 @@
 #define TERM_PROJECT_TEST_LEAF_H
 
 #include <map>
+#include "gtest/gtest.h"
 #include "../src/node/LeafNode.h"
 
 TEST(LeafCreation, ParametersTest) {

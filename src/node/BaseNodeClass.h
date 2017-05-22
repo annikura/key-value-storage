@@ -27,7 +27,6 @@ public:
         return keys.size();
     }
     virtual size_t getId() const {
-        assert(!is_deleted);
         return id;
     }
     virtual void setId(size_t new_id) {
