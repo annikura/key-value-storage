@@ -115,7 +115,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::commit(const BNode & node) {
     auto index = this->storage.find(node.getId());
     if (index != this->storage.end())
         this->storage.erase(index);
-    this->storage.insert(std::make_pair(node.getId(), node));
+    this->storage.insert(std::make_pair(node.getId(), node.toBinary()));
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -126,7 +126,7 @@ Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::get
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
-    return buffer[id] = this->storage.find(id)->second;
+    return buffer[id] = BNode(this->storage.find(id)->second);
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -137,7 +137,7 @@ Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::get
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
-    return this->storage.find(id)->second;
+    return BNode(this->storage.find(id)->second);
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -301,8 +301,10 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Va
 
     if (this->root.size() == node_size * 2) {
         std::tuple<BNode, BNode> pair = this->root.split(genNodeId(), genNodeId());
+
         size_t root_id = this->root.getId();
         this->root = BNode(InnerNode<Key>());
+
         this->root.setId(root_id);
 
         this->root.addKey(std::get<0>(pair).getMax(), std::get<0>(pair).getId(), 0);
@@ -313,12 +315,13 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Va
         saveNode(this->root);
     }
 
-    for (auto & node: changes)
+    for (auto & node: changes) {
         commit(node.second);
+        //print(getNode(node.second.getId()));
+    }
 
-
-    buffer.clear();
     changes.clear();
+    buffer.clear();
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -337,6 +340,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::del(const Key & key) {
 
     for (auto & node: changes)
         commit(node.second);
+
 
     buffer.clear();
     changes.clear();

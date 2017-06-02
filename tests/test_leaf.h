@@ -10,7 +10,7 @@
 #include "../src/node/LeafNode.h"
 
 TEST(LeafCreation, ParametersTest) {
-    LeafNode<int, int, std::map<size_t, int>> node;
+    LeafNode<int, int, std::map<size_t, std::vector<uint8_t>>> node;
 
     EXPECT_EQ(0, node.size());
     EXPECT_EQ(-1, node.getNext());
@@ -19,8 +19,9 @@ TEST(LeafCreation, ParametersTest) {
     EXPECT_EQ(-1, node.getId());
 }
 
+
 TEST(LeafSetters, Simple) {
-    LeafNode<int, int, std::map<size_t, int>> node;
+    LeafNode<int, int, std::map<size_t, std::vector<uint8_t>>> node;
     size_t next = 100, prev = 519, id = 74;
 
     node.setNext(next);
@@ -33,7 +34,7 @@ TEST(LeafSetters, Simple) {
 }
 
 TEST(LeafAdd, Unary) {
-    LeafNode<std::string, std::string, std::map<size_t , std::string>> node;
+    LeafNode<std::string, std::string, std::map<size_t , std::vector<uint8_t>>> node;
     size_t value_id = 0;
     std::string key = "10x", value = "25x";
 
@@ -45,7 +46,7 @@ TEST(LeafAdd, Unary) {
 }
 
 TEST(LeafAdd, SeveralInOrder) {
-    LeafNode<std::string, char, std::map<size_t , char>> node;
+    LeafNode<std::string, char, std::map<size_t , std::vector<uint8_t>>> node;
 
     for (char i = 'a'; i <= 'z'; i++) {
         std::string s;
@@ -64,7 +65,7 @@ TEST(LeafAdd, SeveralInOrder) {
 
 
 TEST(LeafAdd, SeveralInReverseOrder) {
-    LeafNode<std::string, char, std::map<size_t , char>> node;
+    LeafNode<std::string, char, std::map<size_t, std::vector<uint8_t>>> node;
 
     for (char i = 'z'; i >= 'a'; i--) {
         std::string s;
@@ -82,7 +83,7 @@ TEST(LeafAdd, SeveralInReverseOrder) {
 }
 
 TEST(LeafAdd, BigRandom1) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t, std::vector<uint8_t>>> node;
     srand(179239);
     int max = 0;
 
@@ -107,7 +108,7 @@ TEST(LeafAdd, BigRandom1) {
 
 
 TEST(LeafAdd, BigRandom2) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(239179);
 
     size_t n = 10000;
@@ -128,7 +129,7 @@ TEST(LeafAdd, BigRandom2) {
 }
 
 TEST(LeafSetValue, Big1) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(179239);
 
     size_t n = 10000;
@@ -158,7 +159,7 @@ TEST(LeafSetValue, Big1) {
 
 
 TEST(LeafSetValue, Big2) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t, std::vector<uint8_t>>> node;
     srand(239179);
 
     size_t n = 10000;
@@ -187,7 +188,7 @@ TEST(LeafSetValue, Big2) {
 }
 
 TEST(LeafDeleteValue, Big1) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(179239);
 
     size_t n = 10000;
@@ -216,7 +217,7 @@ TEST(LeafDeleteValue, Big1) {
 
 
 TEST(LeafDeleteValue, Big2) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(239179);
 
     size_t n = 10000;
@@ -244,7 +245,7 @@ TEST(LeafDeleteValue, Big2) {
 }
 
 TEST(LeafSplit, Simple) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
 
     int key1 = 1, key2 = 2, val1 = 3, val2 = 4;
     size_t id1 = 444, id2 = 555;
@@ -254,8 +255,8 @@ TEST(LeafSplit, Simple) {
     node.setPrev(prev);
     node.setNext(next);
 
-    std::tuple<LeafNode<int, int, std::map<size_t , int>>,
-               LeafNode<int, int, std::map<size_t , int>>> ret = node.split(id1, id2);
+    std::tuple<LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>,
+               LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>> ret = node.split(id1, id2);
     EXPECT_EQ(1, std::get<0>(ret).size());
     EXPECT_EQ(id1, std::get<0>(ret).getId());
     EXPECT_EQ(id2, std::get<0>(ret).getNext());
@@ -273,7 +274,7 @@ TEST(LeafSplit, Simple) {
 
 
 TEST(LeafJoin, Simple) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
 
     int key1 = 1, key2 = 2, val1 = 3, val2 = 4;
     size_t id1 = 444, id2 = 555;
@@ -283,10 +284,10 @@ TEST(LeafJoin, Simple) {
     node.setPrev(prev);
     node.setNext(next);
 
-    std::tuple<LeafNode<int, int, std::map<size_t , int>>,
-            LeafNode<int, int, std::map<size_t , int>>> ret = node.split(id1, id2);
+    std::tuple<LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>,
+            LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>> ret = node.split(id1, id2);
 
-    LeafNode<int, int, std::map<size_t , int>> new_node = std::get<0>(ret);
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> new_node = std::get<0>(ret);
     new_node.join(std::get<1>(ret));
 
     EXPECT_EQ(2, new_node.size());
@@ -301,7 +302,7 @@ TEST(LeafJoin, Simple) {
 
 
 TEST(LeafSplitJoin, BigOdd) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(179239);
 
     size_t id1 = 444, id2 = 555;
@@ -320,9 +321,9 @@ TEST(LeafSplitJoin, BigOdd) {
         node.addKey(node.find(key, std::less<int>()), i, key, val);
     }
 
-    std::tuple<LeafNode<int, int, std::map<size_t , int>>,
-            LeafNode<int, int, std::map<size_t , int>>> ret = node.split(id1, id2);
-    LeafNode<int, int, std::map<size_t , int>> new_node = std::get<0>(ret);
+    std::tuple<LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>,
+            LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>> ret = node.split(id1, id2);
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> new_node = std::get<0>(ret);
     new_node.join(std::get<1>(ret));
 
     for (auto & el: map) {
@@ -347,7 +348,7 @@ TEST(LeafSplitJoin, BigOdd) {
 
 
 TEST(LeafSplitJoin, BigEven) {
-    LeafNode<int, int, std::map<size_t , int>> node;
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(239179);
 
     size_t id1 = 444, id2 = 555;
@@ -366,9 +367,9 @@ TEST(LeafSplitJoin, BigEven) {
         node.addKey(node.find(key, std::less<int>()), i, key, val);
     }
 
-    std::tuple<LeafNode<int, int, std::map<size_t , int>>,
-            LeafNode<int, int, std::map<size_t , int>>> ret = node.split(id1, id2);
-    LeafNode<int, int, std::map<size_t , int>> new_node = std::get<0>(ret);
+    std::tuple<LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>,
+            LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>>> ret = node.split(id1, id2);
+    LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> new_node = std::get<0>(ret);
     new_node.join(std::get<1>(ret));
 
     for (auto & el: map) {

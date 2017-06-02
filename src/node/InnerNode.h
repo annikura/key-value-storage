@@ -6,6 +6,7 @@
 #define TERM_PROJECT_INNERNODE_H
 
 #include "BaseNodeClass.h"
+#include "../utilities.h"
 
 template <typename Key>
 class InnerNode : public BaseNodeClass<Key>{
@@ -19,6 +20,7 @@ public:
 // ===== Base node methods =====
 
     InnerNode();
+    InnerNode(const std::vector<uint8_t> & src, size_t beg);
     InnerNode(const inner_node_t & other);
     InnerNode(inner_node_t && other);
     InnerNode &operator=(const InnerNode & other) = default;
@@ -26,6 +28,7 @@ public:
     bool isLeaf() const override;
 
     std::tuple<inner_node_t, inner_node_t> split(size_t id_l, size_t id_r) const;
+    size_t toBinary(std::vector<uint8_t> & res, size_t index) const override;
 
 // ===== Inner node methods =====
 
@@ -84,6 +87,25 @@ std::tuple<InnerNode<Key>, InnerNode<Key>> InnerNode<Key>::split(size_t id_l, si
     right.children.insert(right.children.begin(), this->children.begin() + middle, this->children.end());
 
     return std::make_tuple(left, right);
+}
+
+
+template <typename Key>
+InnerNode<Key>::InnerNode(const std::vector<uint8_t> & src, size_t beg)
+        : super_t::BaseNodeClass(src, beg)
+{
+    assert(beg + this->size() * sizeof(size_t) <= src.size());
+    for (size_t index = 0; index < this->size(); index++)
+        children.push_back(deserialize<size_t>(src, beg + index * sizeof(size_t)));
+}
+
+template <typename Key>
+size_t InnerNode<Key>::toBinary(std::vector<uint8_t> & res, size_t index) const {
+    index = super_t::toBinary(res, index);
+
+    for (size_t i = 0; i < this->size(); i++)
+        index = serialize(children[i], res, index);
+    return index;
 }
 
 // ===== Inner node methods =====

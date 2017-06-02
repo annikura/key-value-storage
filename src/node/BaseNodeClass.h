@@ -12,6 +12,7 @@
 #include <functional>
 #include <vector>
 #include <cassert>
+#include "../utilities.h"
 
 template <typename Key>
 class BaseNodeClass {
@@ -21,9 +22,26 @@ protected:
     std::vector<Key> keys;
 public:
     BaseNodeClass() : id(-1), is_deleted(false) { };
+    BaseNodeClass(const std::vector<uint8_t> & src, size_t & beg) : BaseNodeClass()
+    {
+        size_t size;
+        assert(beg + sizeof(size) <= src.size());
+        id = deserialize<size_t>(src, beg);
+        beg += sizeof(id);
+        size = deserialize<size_t>(src, beg);
+        beg += sizeof(size);
+        //std::cerr << "BaseClass:" << beg << " " << size << " " << src.size() << "\n";
+        assert(beg + size * sizeof(Key) <= src.size());
+        for (size_t index = 0; index < size; index++) {
+            keys.push_back(deserialize<Key>(src, beg));
+            beg += sizeof(Key);
+            //std::cerr << keys.back() << " ";
+        }
+        //std::cerr << "\n";
+    }
 
     virtual size_t size() const {
-        assert(!is_deleted);
+//        assert(!is_deleted);
         return keys.size();
     }
     virtual size_t getId() const {
@@ -34,6 +52,13 @@ public:
         id = new_id;
     }
     virtual bool isLeaf() const = 0;
+    virtual size_t toBinary(std::vector<uint8_t> & res, size_t index) const {
+        index = serialize(this->id, res, index);
+        index = serialize(this->size(), res, index);
+        for (size_t i = 0; i < size(); i++)
+            index = serialize(keys[i], res, index);
+        return index;
+    }
 
     virtual const Key & getKey(size_t index) const {
         assert(!is_deleted);
@@ -54,7 +79,7 @@ public:
     virtual const Key & getMax() const {
         assert(!is_deleted);
         assert(keys.size() > 0);
-        return keys[keys.size() - 1];
+        return keys.back();
     }
 };
 

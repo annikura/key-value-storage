@@ -22,8 +22,8 @@ void genIntPairs(size_t n, size_t seed, std::vector<std::pair<int, int>> & arr) 
 TEST(BTreePositive, SimpleAdd1) {
     typedef std::string key_t;
     typedef std::string value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     key_t key = "foo";
     value_t value = "x";
@@ -36,8 +36,8 @@ TEST(BTreePositive, SimpleAdd1) {
 TEST(BTreePositive, SimpleAdd2) {
     typedef std::string key_t;
     typedef std::string value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     key_t key1 = "foo", key2 = "temp";
     value_t value1 = "x", value2 = "res";
@@ -52,8 +52,8 @@ TEST(BTreePositive, SimpleAdd2) {
 TEST(BTreePositive, BigSmallAdd) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()));
 
@@ -67,32 +67,35 @@ TEST(BTreePositive, BigSmallAdd) {
         EXPECT_EQ(arr[index].second, tree.get(arr[index].first));
 }
 
+
+
 TEST(BTreePositive, BranchedAdd) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()), 2);
 
-    size_t n = 20;
+    size_t n = 4;
     std::vector<std::pair<int, int>> arr;
     genIntPairs(n, 179239, arr);
 
     for (size_t index = 0; index < n; index++) {
         tree.set(arr[index].first, arr[index].second);
+        //tree.print();
     }
-
     std::sort(arr.begin(), arr.end());
     for (size_t index = 0; index < n; index++)
         EXPECT_EQ(arr[index].second, tree.get(arr[index].first));
 }
 
+
 TEST(BTreePositive, BigAdd) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()));
 
@@ -109,8 +112,8 @@ TEST(BTreePositive, BigAdd) {
 TEST(BTreePositive, SimpleDel) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()));
 
@@ -130,8 +133,8 @@ TEST(BTreePositive, SimpleDel) {
 TEST(BTreePositive, SmallDel) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()));
 
@@ -150,8 +153,8 @@ TEST(BTreePositive, SmallDel) {
 TEST(BTreePositive, BranchedDel) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()), 2);
 
@@ -170,8 +173,8 @@ TEST(BTreePositive, BranchedDel) {
 TEST(BTreePositive, BigDelInSortOrder) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()));
 
@@ -190,8 +193,8 @@ TEST(BTreePositive, BigDelInSortOrder) {
 TEST(BTreePositive, BigDelInReverseOrder) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()));
 
@@ -211,8 +214,8 @@ TEST(BTreePositive, BigDelInReverseOrder) {
 TEST(BTreePositive, BigDelShuffled) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()), 2);
 
@@ -234,8 +237,8 @@ TEST(BTreePositive, BigDelShuffled) {
 TEST(BTreePositive, GetRange) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     tree_t tree((std::less<key_t>()), 10);
 
@@ -260,9 +263,8 @@ TEST(BTreePositive, GetRange) {
 TEST(BTreePositive, Brute) {
     typedef int key_t;
     typedef int value_t;
-    typedef std::map<size_t, value_t> v_storage;
-    typedef BTree<key_t, value_t, std::map<size_t, Node<key_t, value_t, v_storage>>, v_storage> tree_t;
-
+    typedef std::map<size_t, std::vector<uint8_t>> v_storage;
+    typedef BTree<key_t, value_t, v_storage, v_storage> tree_t;
 
     for (size_t times = 0; times < 100; times++) {
         tree_t tree((std::less<key_t>()), 64);
@@ -299,6 +301,5 @@ TEST(BTreePositive, Brute) {
         }
     }
 }
-
 
 #endif //TERM_PROJECT_TEST_BTREE_H

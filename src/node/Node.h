@@ -54,6 +54,12 @@ public:
     const Key & getKey(size_t index) const;
     void deleteKey(size_t index);
 
+
+// ===== Binary mode methods =====
+
+    explicit Node(const std::vector<uint8_t > & src);
+    std::vector<uint8_t> toBinary() const;
+
 // ===== Leaf node methods =====
 
     size_t getNext() const;
@@ -308,6 +314,48 @@ const Key & Node<Key, Value, ValueStorage>::getKey(size_t index) const {
         return innerNode.getKey(index);
     }
 }
+
+// ===== Binary mode methods =====
+
+template <
+        typename Key,
+        typename Value,
+        typename ValueStorage
+>
+Node<Key, Value, ValueStorage>::Node(const std::vector<uint8_t> & src) {
+    size_t index = 0;
+    node_type = deserialize<NodeType>(src, index);
+    index += sizeof(node_type);
+
+    //std::cerr << "Node: " << index << " " << (int)node_type << "\n";
+    if (node_type == node_t::NodeType::INNER)
+        innerNode = inner_node_t(src, index);
+    if (node_type == node_t::NodeType::LEAF)
+        leafNode = leaf_node_t(src, index);
+    assert(node_type != NodeType::UNKNOWN);
+}
+
+
+template <
+        typename Key,
+        typename Value,
+        typename ValueStorage
+>
+std::vector<uint8_t> Node<Key, Value, ValueStorage>::toBinary() const {
+    assert(node_type != NodeType::UNKNOWN);
+    std::vector<uint8_t> ret;
+    serialize(node_type, ret, ret.size());
+    if (node_type == NodeType::LEAF)
+        leafNode.toBinary(ret, ret.size());
+    else
+        innerNode.toBinary(ret, ret.size());
+    //std::cerr << "Result: ";
+    //for (auto el: ret)
+    //    std::cerr << (int)el << " ";
+    //std::cerr << std::endl;
+    return std::move(ret);
+}
+
 
 // ===== Leaf node methods =====
 

@@ -3,8 +3,8 @@
 //
 #include "gtest/gtest.h"
 
-#include "test_leaf.h"
-#include "test_inner.h"
+//#include "test_leaf.h"
+//#include "test_inner.h"
 #include "test_btree.h"
 
 int main(int argc, char **argv) {
