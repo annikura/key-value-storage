@@ -15,6 +15,6 @@ set(SOURCE_FILES src/library.cpp
 set(TEST_SOURCES tests/test_all.cpp)
 
 add_executable(test_all ${SOURCE_FILES} tests/test_all.cpp tests/test_leaf.h tests/test_inner.h tests/test_btree.h)
-add_library(term_project ${SOURCE_FILES} src/io/IOBaseClass.h src/utilities.cpp src/utilities.h)
+add_library(term_project ${SOURCE_FILES} src/io/IOStorage.h src/utilities.h)
 
 target_link_libraries(test_all gtest)

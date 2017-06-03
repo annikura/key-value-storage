@@ -1,6 +1,6 @@
 #include "library.h"
-#include "io/IOBaseClass.h"
+#include "io/IOStorage.h"
 
 #include <iostream>
 
-IOBaseClass file("a", "b", "c");
+IOStorage file("a", "b", "c", 10);
