@@ -1,7 +1,3 @@
-//
-// Created by annikura on 13.05.17.
-//
-
 #ifndef TERM_PROJECT_BASENODECLASS_H
 #define TERM_PROJECT_BASENODECLASS_H
 
@@ -30,18 +26,14 @@ public:
         beg += sizeof(id);
         size = deserialize<size_t>(src, beg);
         beg += sizeof(size);
-        //std::cerr << "BaseClass:" << beg << " " << size << " " << src.size() << "\n";
         assert(beg + size * sizeof(Key) <= src.size());
         for (size_t index = 0; index < size; index++) {
             keys.push_back(deserialize<Key>(src, beg));
             beg += sizeof(Key);
-            //std::cerr << keys.back() << " ";
         }
-        //std::cerr << "\n";
     }
 
     virtual size_t size() const {
-//        assert(!is_deleted);
         return keys.size();
     }
     virtual size_t getId() const {

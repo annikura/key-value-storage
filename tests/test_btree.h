@@ -83,7 +83,6 @@ TEST(BTreePositive, BranchedAdd) {
 
     for (size_t index = 0; index < n; index++) {
         tree.set(arr[index].first, arr[index].second);
-        //tree.print();
     }
     std::sort(arr.begin(), arr.end());
     for (size_t index = 0; index < n; index++)

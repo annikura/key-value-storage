@@ -3,4 +3,4 @@
 
 #include <iostream>
 
-IOStorage file("a", "b", "c", 10);
+//IOStorage file("a", "b", "c", 10);

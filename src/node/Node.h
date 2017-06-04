@@ -326,8 +326,6 @@ Node<Key, Value, ValueStorage>::Node(const std::vector<uint8_t> & src) {
     size_t index = 0;
     node_type = deserialize<NodeType>(src, index);
     index += sizeof(node_type);
-
-    //std::cerr << "Node: " << index << " " << (int)node_type << "\n";
     if (node_type == node_t::NodeType::INNER)
         innerNode = inner_node_t(src, index);
     if (node_type == node_t::NodeType::LEAF)
@@ -349,10 +347,6 @@ std::vector<uint8_t> Node<Key, Value, ValueStorage>::toBinary() const {
         leafNode.toBinary(ret, ret.size());
     else
         innerNode.toBinary(ret, ret.size());
-    //std::cerr << "Result: ";
-    //for (auto el: ret)
-    //    std::cerr << (int)el << " ";
-    //std::cerr << std::endl;
     return std::move(ret);
 }
 

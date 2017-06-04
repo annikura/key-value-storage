@@ -1,7 +1,3 @@
-//
-// Created by annikura on 13.05.17.
-//
-
 #ifndef TERM_PROJECT_INNERNODE_H
 #define TERM_PROJECT_INNERNODE_H
 

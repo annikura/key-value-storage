@@ -1,7 +1,3 @@
-//
-// Created by annikura on 16.05.17.
-//
-
 #ifndef TERM_PROJECT_LEAFNODE_H
 #define TERM_PROJECT_LEAFNODE_H
 
@@ -22,13 +18,16 @@ protected:
 public:
 // ===== Base node methods =====
     LeafNode();
-    LeafNode(const std::vector<uint8_t> & src, size_t beg);
     LeafNode(const leaf_node_t & other);
     LeafNode(leaf_node_t && other);
     LeafNode & operator=(const LeafNode & other);
     bool isLeaf() const override;
 
     std::tuple<leaf_node_t, leaf_node_t> split(size_t id_l, size_t id_r) const;
+
+// ===== Binary mode =====
+
+    LeafNode(const std::vector<uint8_t> & src, size_t beg);
     size_t toBinary(std::vector<uint8_t> & res, size_t index) const override;
 
 // ===== Leaf node methods =====
@@ -56,21 +55,6 @@ LeafNode<Key, Value, ValueStorage>::LeafNode() :
         prev(-1),
         super_t::BaseNodeClass() { }
 
-template <typename Key, typename Value, typename ValueStorage>
-LeafNode<Key, Value, ValueStorage>::LeafNode(const std::vector<uint8_t> & src, size_t beg)
-    : super_t::BaseNodeClass(src, beg)
-{
-    size_t size;
-    assert(beg + sizeof(next) + sizeof(prev) <= src.size());
-    next = deserialize<size_t>(src, beg);
-    beg += sizeof(next);
-    prev = deserialize<size_t>(src, beg);
-    beg += sizeof(prev);
-    //std::cerr << "Next-prev: " << next << " " << prev << std::endl;
-    assert(beg + this->size() * sizeof(size_t) <= src.size());
-    for (size_t index = 0; index < this->size(); index++)
-        values.push_back(deserialize<size_t>(src, beg + index * sizeof(size_t)));
-}
 
 template <typename Key, typename Value, typename ValueStorage>
 LeafNode<Key, Value, ValueStorage>::LeafNode(const leaf_node_t & other) :
@@ -144,13 +128,26 @@ std::tuple<LeafNode<Key, Value, ValueStorage>,
     return std::make_tuple(left, right);
 }
 
+// ===== Binary mode =====
+
+template <typename Key, typename Value, typename ValueStorage>
+LeafNode<Key, Value, ValueStorage>::LeafNode(const std::vector<uint8_t> & src, size_t beg)
+        : super_t::BaseNodeClass(src, beg)
+{
+    assert(beg + sizeof(next) + sizeof(prev) <= src.size());
+    next = deserialize<size_t>(src, beg);
+    beg += sizeof(next);
+    prev = deserialize<size_t>(src, beg);
+    beg += sizeof(prev);
+    assert(beg + this->size() * sizeof(size_t) <= src.size());
+    for (size_t index = 0; index < this->size(); index++)
+        values.push_back(deserialize<size_t>(src, beg + index * sizeof(size_t)));
+}
+
+
 template <typename Key, typename Value, typename ValueStorage>
 size_t LeafNode<Key, Value, ValueStorage>::toBinary(std::vector<uint8_t> & res, size_t index) const {
     index = super_t::toBinary(res, index);
-    //std::cerr << "super : ";
-    //for (auto el: res)
-    //    std::cerr << (int)el << " ";
-    //std::cerr << std::endl;
     index = serialize(next, res, index);
     index = serialize(prev, res, index);
 
@@ -189,7 +186,6 @@ template <typename Key, typename Value, typename ValueStorage>
 Value LeafNode<Key, Value, ValueStorage>::getValue(size_t index) const {
     assert(index < values.size());
     assert(!this->is_deleted);
-    //std::cerr << "\nValue index: " << values[index] << "\n";
     return deserialize<Value>(value_storage.find(values[index])->second, 0);
 }
 
