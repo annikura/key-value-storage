@@ -44,7 +44,7 @@ protected:
 public:
     void print(BNode node = InnerNode<Key>()) const;
 
-    BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz =  256);
+    BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz =  128);
     const Value get(const Key & key) const override;
     void set(const Key & key, const Value & value) override;
     void del(const Key & key) override ;

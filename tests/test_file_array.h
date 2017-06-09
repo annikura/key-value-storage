@@ -132,12 +132,26 @@ TEST_F(FileArray_f, BigWriteElement) {
     }
 }
 
+TEST_F(FileArray_f, BigWriteBlocks) {
+    srand(179239);
+
+    size_t n = 6000, sz = 1024;
+    FileArray file (path, sizeof(int) * sz, true);
+    std::vector<int> vec(sz);
+
+    for (size_t i = 0; i < sz; i++)
+        vec[i] = i;
+    for (size_t i = 0; i < n; ++i)
+        file.pushBack(vec[0], vec.size());
+}
+
+
 TEST_F(FileArray_f, BigDel) {
     srand(179239);
 
     FileArray file (path, sizeof(int), true);
     std::vector<std::pair<int, size_t>> vec;
-    size_t n = 10000, m = n - n / 2;
+    size_t n = 1000, m = n - n / 2;
 
     for (size_t i = 0; i < n; i++) {
         vec.push_back(std::make_pair(rand(), i));

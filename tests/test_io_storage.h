@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include "../src/io/IOStorage.h"
 
-std::string directory = "tests/test_files/";
+static std::string directory = "tests/test_files/";
 
 class IOStorage_f : public testing::Test{
 public:
@@ -62,14 +62,14 @@ TEST_F(IOStorage_f, SimpleDel1) {
 }
 
 TEST_F(IOStorage_f, BigAdd) {
-    size_t sz = 1;
+    size_t sz = 512;
+    size_t n = 2000;
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", sz);
-    size_t n = 1;
     std::vector<std::vector<uint8_t>> vec(n);
 
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < sz; j++)
-            vec[i].push_back(rand());
+            vec[i].push_back(i + j);
         storage.insert(std::make_pair(i, vec[i]));
     }
 
@@ -97,5 +97,25 @@ TEST_F(IOStorage_f, BigDel) {
             EXPECT_EQ(vec[i], storage.find(i)->second);
         else
             EXPECT_EQ(storage.end(), storage.find(i));
+}
+
+
+TEST(TimeConsumer, Simple) {
+    system("touch file");
+    system("rm -f file");
+    system("touch file");
+
+    size_t n = 2000, sz = 4096;
+    for (size_t i = 0; i < n; i++) {
+        std::fstream file;
+        file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+        file.open("file", std::ios_base::in | std::ios_base::out | std::ios_base::app   );
+        std::vector<uint8_t> vec(sz, i);
+        file.write(reinterpret_cast<char *>(&vec[0]), sz);
+        file.seekg(0);
+        file.flush();
+        file.seekg(std::ios_base::end);
+        file.close();
+    }
 }
 #endif //TERM_PROJECT_TEST_IO_STORAGE_H

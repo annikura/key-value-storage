@@ -16,7 +16,7 @@ void genIntPairs(size_t n, size_t seed, std::vector<std::pair<int, int>> & arr) 
     }
 }
 
-TEST(BTreePositive, SimpleAdd1) {
+TEST(BTree, SimpleAdd1) {
     typedef std::string key_t;
     typedef std::string value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -30,7 +30,7 @@ TEST(BTreePositive, SimpleAdd1) {
     EXPECT_EQ(value, tree.get(key));
 }
 
-TEST(BTreePositive, SimpleAdd2) {
+TEST(BTree, SimpleAdd2) {
     typedef std::string key_t;
     typedef std::string value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -46,7 +46,7 @@ TEST(BTreePositive, SimpleAdd2) {
     EXPECT_EQ(value1, tree.get(key1));
 }
 
-TEST(BTreePositive, BigSmallAdd) {
+TEST(BTree, BigSmallAdd) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -66,7 +66,7 @@ TEST(BTreePositive, BigSmallAdd) {
 
 
 
-TEST(BTreePositive, BranchedAdd) {
+TEST(BTree, BranchedAdd) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -87,7 +87,7 @@ TEST(BTreePositive, BranchedAdd) {
 }
 
 
-TEST(BTreePositive, BigAdd) {
+TEST(BTree, BigAdd) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -105,7 +105,7 @@ TEST(BTreePositive, BigAdd) {
         EXPECT_EQ(arr[index].second, tree.get(arr[index].first));
 }
 
-TEST(BTreePositive, SimpleDel) {
+TEST(BTree, SimpleDel) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -126,7 +126,7 @@ TEST(BTreePositive, SimpleDel) {
 }
 
 
-TEST(BTreePositive, SmallDel) {
+TEST(BTree, SmallDel) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -146,7 +146,7 @@ TEST(BTreePositive, SmallDel) {
     }
 }
 
-TEST(BTreePositive, BranchedDel) {
+TEST(BTree, BranchedDel) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -166,7 +166,7 @@ TEST(BTreePositive, BranchedDel) {
     }
 }
 
-TEST(BTreePositive, BigDelInSortOrder) {
+TEST(BTree, BigDelInSortOrder) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -186,7 +186,7 @@ TEST(BTreePositive, BigDelInSortOrder) {
     }
 }
 
-TEST(BTreePositive, BigDelInReverseOrder) {
+TEST(BTree, BigDelInReverseOrder) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -207,7 +207,7 @@ TEST(BTreePositive, BigDelInReverseOrder) {
     }
 }
 
-TEST(BTreePositive, BigDelShuffled) {
+TEST(BTree, BigDelShuffled) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -230,7 +230,7 @@ TEST(BTreePositive, BigDelShuffled) {
 }
 
 
-TEST(BTreePositive, GetRange) {
+TEST(BTree, GetRange) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -256,7 +256,7 @@ TEST(BTreePositive, GetRange) {
 }
 
 
-TEST(BTreePositive, Brute) {
+TEST(BTree, Brute) {
     typedef int key_t;
     typedef int value_t;
     typedef std::map<size_t, std::vector<uint8_t>> v_storage;
@@ -298,5 +298,9 @@ TEST(BTreePositive, Brute) {
     }
 }
 
+TEST(BTreeNegative, Simple) {
+
+
+}
 
 #endif //TERM_PROJECT_TEST_BTREE_H

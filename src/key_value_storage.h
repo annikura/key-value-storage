@@ -22,7 +22,7 @@ const std::string ValueStorage<Key, Value>::type_prefix = "data/" +
 
 template <typename Key, typename Value>
 class NodeStorage : public IOStorage {
-    static const size_t ELEMENTS_IN_NODE = 512 ;
+    static const size_t ELEMENTS_IN_NODE = 256;
     static const std::string type_prefix;
 public:
     NodeStorage() : IOStorage( type_prefix + "^node_storage",

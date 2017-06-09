@@ -11,6 +11,7 @@
 
 class IOStorage {
 private:
+
     const std::string storage_file;
     const std::string table_file;
     const std::string stack_file;
@@ -23,6 +24,7 @@ protected:
                 const std::string & file;
         const size_t & block_sz;
     public:
+
         size_t first;
         std::vector<uint8_t> second;
 
@@ -58,10 +60,9 @@ protected:
     };
 
 public:
-
     IOStorage(std::string stor_name, std::string stck_name, std::string tbl_name, size_t blck_size);
     ProxyIt find(size_t id) const;
-    void insert(std::pair<size_t, std::vector<uint8_t>>);
+    void insert(std::pair<size_t, const std::vector<uint8_t> &>);
     void erase(const ProxyIt & getter);
 
     ProxyIt end() { return  ProxyIt(-1, -1, storage_file, block_size); };
