@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <ios>
 #include <fstream>
+#include "../utilities.h"
 
 class FileArray {
 private:
@@ -12,9 +13,12 @@ private:
     const size_t N;
 public:
     FileArray(std::string filename, size_t blk_sz, bool rewrite=false) : N(blk_sz) {
+        std::system(("touch " + filename).c_str());
+        size_t file_size = getFileSize(filename);
+
         fs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
         fs.open(filename, std::ios_base::out | std::ios_base::in | std::ios_base::binary);
-        if (rewrite) {
+        if (rewrite || file_size < sizeof(sz)) {
             write<size_t>(0, 0, sizeof(sz));
             sz = 0;
         } else {

@@ -193,7 +193,6 @@ template <typename Key, typename Value, typename ValueStorage>
 void LeafNode<Key, Value, ValueStorage>::setValue(const Value & value, size_t index) {
     assert(index < values.size());
     assert(!this->is_deleted);
-
     auto it = this->value_storage.find(values[index]);
     if (it != this->value_storage.end())
         this->value_storage.erase(it);
@@ -213,7 +212,7 @@ template <typename Key, typename Value, typename ValueStorage>
 void LeafNode<Key, Value, ValueStorage>::deleteKey(size_t index) {
     assert(index < this->size());
     assert(!this->is_deleted);
-    value_storage.erase(values[index]);
+    value_storage.erase(value_storage.find(values[index]));
     values.erase(values.begin() + index);
     this->keys.erase(this->keys.begin() + index);
 }

@@ -5,13 +5,26 @@
 #include "gtest/gtest.h"
 #include "../src/io/FileArray.h"
 
-TEST(FileArray, Simple) {
-    FileArray file("file", 4, true);
+static std::string path = "tests/test_files/file";
+
+class FileArray_f : public testing::Test{
+public:
+    void setUp() {
+        system(("touch " + path).c_str());
+    }
+
+    void TearDown() {
+        system(("rm -f " + path).c_str());
+    }
+};
+
+TEST_F(FileArray_f, Simple) {
+    FileArray file(path, 4, true);
     EXPECT_EQ(0, file.size());
 }
 
-TEST(FileArray, SimpleAdd) {
-    FileArray file("file", sizeof(int), true);
+TEST_F(FileArray_f, SimpleAdd) {
+    FileArray file(path, sizeof(int), true);
 
     file.pushBack((int) 5);
     int dest;
@@ -20,8 +33,8 @@ TEST(FileArray, SimpleAdd) {
     EXPECT_EQ(5, dest);
 }
 
-TEST(FileArray, SimpleAdd2) {
-    FileArray file("file", sizeof(uint8_t), true);
+TEST_F(FileArray_f, SimpleAdd2) {
+    FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28, x1, x2;
 
     file.pushBack(val1);
@@ -34,8 +47,8 @@ TEST(FileArray, SimpleAdd2) {
     EXPECT_EQ(x2, val2);
 }
 
-TEST(FileArray, SimpleDel) {
-    FileArray file("file", sizeof(uint8_t), true);
+TEST_F(FileArray_f, SimpleDel) {
+    FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28, x1, x2;
 
     file.pushBack(val1);
@@ -50,8 +63,8 @@ TEST(FileArray, SimpleDel) {
     EXPECT_EQ(x2, val2);
 }
 
-TEST(FileArray, SimpleDel1) {
-    FileArray file("file", sizeof(uint8_t), true);
+TEST_F(FileArray_f, SimpleDel1) {
+    FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28;
 
     file.pushBack(val1);
@@ -62,8 +75,8 @@ TEST(FileArray, SimpleDel1) {
     EXPECT_EQ(0, file.size());
 }
 
-TEST(FileArray, SimpleBack) {
-    FileArray file("file", sizeof(uint8_t), true);
+TEST_F(FileArray_f, SimpleBack) {
+    FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28;
 
     file.pushBack(val1);
@@ -74,10 +87,10 @@ TEST(FileArray, SimpleBack) {
     EXPECT_EQ(0, file.size());
 }
 
-TEST(FileArray, BigAdd) {
+TEST_F(FileArray_f, BigAdd) {
     srand(179239);
 
-    FileArray file ("file", sizeof(int), true);
+    FileArray file (path, sizeof(int), true);
     std::vector<std::pair<int, size_t>> vec;
     size_t n = 10000;
 
@@ -94,10 +107,10 @@ TEST(FileArray, BigAdd) {
     }
 }
 
-TEST(FileArray, BigWriteElement) {
+TEST_F(FileArray_f, BigWriteElement) {
     srand(179239);
 
-    FileArray file ("file", sizeof(int), true);
+    FileArray file (path, sizeof(int), true);
     std::vector<std::pair<int, size_t>> vec;
     size_t n = 10000;
 
@@ -119,10 +132,10 @@ TEST(FileArray, BigWriteElement) {
     }
 }
 
-TEST(FileArray, BigDel) {
+TEST_F(FileArray_f, BigDel) {
     srand(179239);
 
-    FileArray file ("file", sizeof(int), true);
+    FileArray file (path, sizeof(int), true);
     std::vector<std::pair<int, size_t>> vec;
     size_t n = 10000, m = n - n / 2;
 
@@ -144,10 +157,10 @@ TEST(FileArray, BigDel) {
     }
 }
 
-TEST(FileArray, BigDel1) {
+TEST_F(FileArray_f, BigDel1) {
     srand(179239);
 
-    FileArray file ("file", sizeof(int), true);
+    FileArray file (path, sizeof(int), true);
     std::vector<std::pair<int, size_t>> vec;
     size_t n = 10000, m = n - n / 2, cnt = 107;
 
@@ -174,10 +187,10 @@ TEST(FileArray, BigDel1) {
 }
 
 
-TEST(FileArray, BigDelToEmpty) {
+TEST_F(FileArray_f, BigDelToEmpty) {
     srand(179239);
 
-    FileArray file ("file", sizeof(int), true);
+    FileArray file (path, sizeof(int), true);
     size_t n = 10000;
 
     for (size_t i = 0; i < n; i++)

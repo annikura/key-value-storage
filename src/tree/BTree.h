@@ -3,6 +3,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <set>
 #include "BaseBTreeClass.h"
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -43,7 +44,7 @@ protected:
 public:
     void print(BNode node = InnerNode<Key>()) const;
 
-    BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz = 512);
+    BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz =  256);
     const Value get(const Key & key) const override;
     void set(const Key & key, const Value & value) override;
     void del(const Key & key) override ;
@@ -97,6 +98,7 @@ size_t BTree<Key, Value, NodeStorage, ValueStorage>::genValueId() {
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 void BTree<Key, Value, NodeStorage, ValueStorage>::saveNode(const BNode & node) {
+    assert(node.size() <= node_size * 2);
     changes[node.getId()] = node;
 }
 
@@ -122,6 +124,8 @@ Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::get
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
+    if (this->storage.find(id) == storage.end())
+        std::cerr << id << " =(\n";
     return buffer[id] = BNode(this->storage.find(id)->second);
 }
 
@@ -311,10 +315,11 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Va
         saveNode(this->root);
     }
 
-    for (auto & node: changes) {
-        commit(node.second);
-        //print(getNode(node.second.getId()));
-    }
+    std::set<size_t> tmp;
+    for (auto & node: changes)
+        tmp.insert(node.first);
+    for (auto & el: tmp)
+        commit(changes[el]);
 
     changes.clear();
     buffer.clear();
@@ -326,17 +331,21 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::del(const Key & key) {
     this->root = getNode(this->root.getId());
 
     if (!this->root.isLeaf() && this->root.size() == 1) {
-        size_t child = this->root.getChild(0);
+        size_t root_id = this->root.getId();
+        BNode child = getNode(this->root.getChild(0));
 
-        delNode(this->root);
-        saveNode(this->root);
+        this->root = child;
+        this->root.setId(root_id);
 
-        this->root = getNode(child);
+        delNode(child);
+        saveNode(child);
     }
 
+    std::set<size_t> tmp;
     for (auto & node: changes)
-        commit(node.second);
-
+        tmp.insert(node.first);
+    for (auto & el: tmp)
+        commit(changes[el]);
 
     buffer.clear();
     changes.clear();

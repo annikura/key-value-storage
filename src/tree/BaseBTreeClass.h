@@ -1,7 +1,3 @@
-//
-// Created by annikura on 16.05.17.
-//
-
 #ifndef TERM_PROJECT_BASEBTREECLASS_H
 #define TERM_PROJECT_BASEBTREECLASS_H
 

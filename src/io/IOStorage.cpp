@@ -2,7 +2,19 @@
 #include <iostream>
 #include "IOStorage.h"
 
-typename IOStorage::ProxyIt IOStorage::find(size_t id) {
+IOStorage::IOStorage(std::string stor_name, std::string stck_name, std::string tbl_name, size_t blck_size) :
+    storage_file(stor_name),
+    stack_file(stck_name),
+    table_file(tbl_name),
+    block_size(blck_size)
+    {
+        FileArray  name_f(storage_file, block_size);
+        FileArray stack_f(stack_file, sizeof(size_t));
+        FileArray table_f(table_file, sizeof(size_t));
+};
+
+
+typename IOStorage::ProxyIt IOStorage::find(size_t id) const {
     FileArray table(table_file, sizeof(size_t));
     if (table.size() <= id)
         return ProxyIt(-1, -1, storage_file, block_size);
@@ -16,6 +28,7 @@ void IOStorage::insert(std::pair<size_t, std::vector<uint8_t>> pair) {
     FileArray stack(stack_file, sizeof(size_t));
     FileArray table(table_file, sizeof(size_t));
     FileArray storage(storage_file, block_size);
+
     assert(pair.second.size() <= block_size);
 
     pair.second.resize(block_size);
@@ -24,6 +37,7 @@ void IOStorage::insert(std::pair<size_t, std::vector<uint8_t>> pair) {
         stack.back(position);
         stack.popBack();
     }
+
     storage.writeElement(pair.second[0], position);
     table.writeElement(position, pair.first);
 }

@@ -1,10 +1,7 @@
-//
-// Created by annikura on 21.05.17.
-//
-
 #ifndef TERM_PROJECT_TEST_BTREE_H
 #define TERM_PROJECT_TEST_BTREE_H
 
+#include "gtest/gtest.h"
 #include "../src/tree/BTree.h"
 
 void genIntPairs(size_t n, size_t seed, std::vector<std::pair<int, int>> & arr) {
@@ -300,5 +297,6 @@ TEST(BTreePositive, Brute) {
         }
     }
 }
+
 
 #endif //TERM_PROJECT_TEST_BTREE_H

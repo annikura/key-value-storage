@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 template <typename T>
 std::vector<uint8_t> serialize(const T & obj) {
@@ -28,5 +29,7 @@ T deserialize(const std::vector<uint8_t> & src, size_t index) {
     assert(index + sizeof(T) <= src.size());
     return *reinterpret_cast<T*>(const_cast<uint8_t *>(&src[index]));
 }
+
+size_t getFileSize(const std::string & filename);
 
 #endif //TERM_PROJECT_UTILITIES_H
