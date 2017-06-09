@@ -95,16 +95,6 @@ bool LeafNode<Key, Value, ValueStorage>::isLeaf() const {
     return true;
 }
 
-/*
-template <typename Key, typename Value, typename ValueStorage>
-void LeafNode<Key, Value, ValueStorage>::commit() {
-    if (this->is_deleted)
-        this->node_storage.erase(this->id);
-    else
-        this->node_storage.insert_or_assign(this->id, *this);
-}
-*/
-
 template <typename Key, typename Value, typename ValueStorage>
 std::tuple<LeafNode<Key, Value, ValueStorage>,
            LeafNode<Key, Value, ValueStorage>>

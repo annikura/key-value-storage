@@ -5,23 +5,20 @@ void FileArray::popBack() {
 }
 
 FileArray::FileArray(std::string filename, size_t blk_sz, bool rewrite) : N(blk_sz) {
-    std::system(("touch " + filename).c_str());
-    //std::cerr << clock() << "\n";
-    //std::cerr << (long double)clock() / CLOCKS_PER_SEC << "\n";
-    //size_t file_size = getFileSize(filename);
-    //std::cerr << (long double)clock() / CLOCKS_PER_SEC << "\n";
-
-    //fs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
+    if (rewrite) {
+        std::system(("touch " + filename).c_str());
+        std::system(("rm -f " + filename).c_str());
+        std::system(("touch " + filename).c_str());
+    }
+    fs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
     fs.open(filename, std::ios_base::out | std::ios_base::in | std::ios_base::binary);
-    //std::cerr << (long double)clock() / CLOCKS_PER_SEC << "\n";
 
-    if (rewrite) { // || file_size < sizeof(sz)) {
+    if (rewrite) {
         write<size_t>(0, 0, sizeof(sz));
         sz = 0;
     } else {
         sz = size();
     }
-    std::cerr << "fuck\n";
 }
 FileArray::~FileArray() {
     fs.close();

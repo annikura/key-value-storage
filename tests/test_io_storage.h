@@ -6,7 +6,7 @@
 
 static std::string directory = "tests/test_files/";
 
-class IOStorage_f : public testing::Test{
+class IOStorageF : public testing::Test{
 public:
     void setUp() {
     }
@@ -18,12 +18,12 @@ public:
     }
 };
 
-TEST_F(IOStorage_f, Simple) {
+TEST_F(IOStorageF, Simple) {
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", 1);
     EXPECT_EQ(storage.end(), storage.find(0));
 }
 
-TEST_F(IOStorage_f, SimpleAdd) {
+TEST_F(IOStorageF, SimpleAdd) {
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", 1);
     storage.insert(std::make_pair(0, std::vector<uint8_t>(1, 9)));
     auto res = storage.find(0);
@@ -33,7 +33,7 @@ TEST_F(IOStorage_f, SimpleAdd) {
     EXPECT_EQ(storage.end(), storage.find(1));
 }
 
-TEST_F(IOStorage_f, SimpleAdd1) {
+TEST_F(IOStorageF, SimpleAdd1) {
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", 1);
     storage.insert(std::make_pair(0, std::vector<uint8_t>(1, 9)));
     storage.insert(std::make_pair(1, std::vector<uint8_t>(1, 8)));
@@ -44,7 +44,7 @@ TEST_F(IOStorage_f, SimpleAdd1) {
     EXPECT_EQ(storage.end(), storage.find(3));
 }
 
-TEST_F(IOStorage_f, SimpleDel) {
+TEST_F(IOStorageF, SimpleDel) {
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", 1);
     storage.insert(std::make_pair(0, std::vector<uint8_t>(1, 9)));
     storage.erase(storage.find(0));
@@ -52,7 +52,7 @@ TEST_F(IOStorage_f, SimpleDel) {
 }
 
 
-TEST_F(IOStorage_f, SimpleDel1) {
+TEST_F(IOStorageF, SimpleDel1) {
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", 1);
     storage.insert(std::make_pair(0, std::vector<uint8_t>(1, 9)));
     storage.insert(std::make_pair(1, std::vector<uint8_t>(1, 11)));
@@ -61,7 +61,7 @@ TEST_F(IOStorage_f, SimpleDel1) {
     EXPECT_EQ(std::vector<uint8_t>(1, 11), storage.find(1)->second);
 }
 
-TEST_F(IOStorage_f, BigAdd) {
+TEST_F(IOStorageF, BigAdd) {
     size_t sz = 512;
     size_t n = 2000;
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", sz);
@@ -77,7 +77,7 @@ TEST_F(IOStorage_f, BigAdd) {
         EXPECT_EQ(vec[i], storage.find(i)->second);
 }
 
-TEST_F(IOStorage_f, BigDel) {
+TEST_F(IOStorageF, BigDel) {
     size_t sz = 1;
     IOStorage storage(directory + "storage", directory + "stack", directory + "table", sz);
     size_t n = 1;

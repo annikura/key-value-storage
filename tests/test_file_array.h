@@ -7,7 +7,7 @@
 
 static std::string path = "tests/test_files/file";
 
-class FileArray_f : public testing::Test{
+class FileArrayF : public testing::Test{
 public:
     void setUp() {
         system(("touch " + path).c_str());
@@ -18,12 +18,12 @@ public:
     }
 };
 
-TEST_F(FileArray_f, Simple) {
+TEST_F(FileArrayF, Simple) {
     FileArray file(path, 4, true);
     EXPECT_EQ(0, file.size());
 }
 
-TEST_F(FileArray_f, SimpleAdd) {
+TEST_F(FileArrayF, SimpleAdd) {
     FileArray file(path, sizeof(int), true);
 
     file.pushBack((int) 5);
@@ -33,7 +33,7 @@ TEST_F(FileArray_f, SimpleAdd) {
     EXPECT_EQ(5, dest);
 }
 
-TEST_F(FileArray_f, SimpleAdd2) {
+TEST_F(FileArrayF, SimpleAdd2) {
     FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28, x1, x2;
 
@@ -47,7 +47,7 @@ TEST_F(FileArray_f, SimpleAdd2) {
     EXPECT_EQ(x2, val2);
 }
 
-TEST_F(FileArray_f, SimpleDel) {
+TEST_F(FileArrayF, SimpleDel) {
     FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28, x1, x2;
 
@@ -63,7 +63,7 @@ TEST_F(FileArray_f, SimpleDel) {
     EXPECT_EQ(x2, val2);
 }
 
-TEST_F(FileArray_f, SimpleDel1) {
+TEST_F(FileArrayF, SimpleDel1) {
     FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28;
 
@@ -75,7 +75,7 @@ TEST_F(FileArray_f, SimpleDel1) {
     EXPECT_EQ(0, file.size());
 }
 
-TEST_F(FileArray_f, SimpleBack) {
+TEST_F(FileArrayF, SimpleBack) {
     FileArray file(path, sizeof(uint8_t), true);
     uint8_t val1 = 15, val2 = 28;
 
@@ -87,7 +87,7 @@ TEST_F(FileArray_f, SimpleBack) {
     EXPECT_EQ(0, file.size());
 }
 
-TEST_F(FileArray_f, BigAdd) {
+TEST_F(FileArrayF, BigAdd) {
     srand(179239);
 
     FileArray file (path, sizeof(int), true);
@@ -107,7 +107,7 @@ TEST_F(FileArray_f, BigAdd) {
     }
 }
 
-TEST_F(FileArray_f, BigWriteElement) {
+TEST_F(FileArrayF, BigWriteElement) {
     srand(179239);
 
     FileArray file (path, sizeof(int), true);
@@ -132,7 +132,7 @@ TEST_F(FileArray_f, BigWriteElement) {
     }
 }
 
-TEST_F(FileArray_f, BigWriteBlocks) {
+TEST_F(FileArrayF, BigWriteBlocks) {
     srand(179239);
 
     size_t n = 6000, sz = 1024;
@@ -146,7 +146,7 @@ TEST_F(FileArray_f, BigWriteBlocks) {
 }
 
 
-TEST_F(FileArray_f, BigDel) {
+TEST_F(FileArrayF, BigDel) {
     srand(179239);
 
     FileArray file (path, sizeof(int), true);
@@ -171,7 +171,7 @@ TEST_F(FileArray_f, BigDel) {
     }
 }
 
-TEST_F(FileArray_f, BigDel1) {
+TEST_F(FileArrayF, BigDel1) {
     srand(179239);
 
     FileArray file (path, sizeof(int), true);
@@ -201,7 +201,7 @@ TEST_F(FileArray_f, BigDel1) {
 }
 
 
-TEST_F(FileArray_f, BigDelToEmpty) {
+TEST_F(FileArrayF, BigDelToEmpty) {
     srand(179239);
 
     FileArray file (path, sizeof(int), true);
