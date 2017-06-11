@@ -52,9 +52,6 @@ public:
     void join(const Node & other);
     const Key & getMax() const;
     const Key & getKey(size_t index) const;
-    void deleteKey(size_t index);
-
-
 // ===== Binary mode methods =====
 
     explicit Node(const std::vector<uint8_t > & src);
@@ -68,23 +65,21 @@ public:
     void setNext(size_t id);
     void setPrev(size_t id);
 
-    Value getValue(size_t index) const;
-
-    void setValue(const Value & value, size_t index);
-
-    void addKey(size_t index, size_t val_id, const Key & key, const Value & value); // both are returning new max key in the node
-
+    Value getValue(size_t index, const ValueStorage & value_storage) const;
+    void setValue(const Value & value, size_t index, ValueStorage & value_storage);
+    void addKey(size_t index, size_t val_id, const Key & key, const Value & value, ValueStorage & value_storage); // both are returning new max key in the node
+    void deleteKey(size_t index, ValueStorage & value_storage);
 
 // ===== Inner node methods =====
 
     const Key & updateKey(const Key & key, size_t index);
+
     const Key & addKey(const Key & key, size_t child_id, size_t index);
-
-
     size_t getChild(size_t index) const;
 
     void setChild(size_t index, size_t new_child);
     void setKey(size_t index, const Key & new_key);
+    void deleteKey(size_t index);
 };
 
 template <
@@ -399,9 +394,9 @@ template <
         typename Value,
         typename ValueStorage
 >
-Value Node<Key, Value, ValueStorage>::getValue(size_t index) const {
+Value Node<Key, Value, ValueStorage>::getValue(size_t index, const ValueStorage & value_storage) const {
     assert(node_type == NodeType::LEAF);
-    return leafNode.getValue(index);
+    return leafNode.getValue(index, value_storage);
 }
 
 template <
@@ -409,9 +404,9 @@ template <
         typename Value,
         typename ValueStorage
 >
-void Node<Key, Value, ValueStorage>::setValue(const Value & value, size_t index) {
+void Node<Key, Value, ValueStorage>::setValue(const Value & value, size_t index, ValueStorage & value_storage) {
     assert(node_type == NodeType::LEAF);
-    leafNode.setValue(value, index);
+    leafNode.setValue(value, index, value_storage);
 }
 
 template <
@@ -419,9 +414,10 @@ template <
         typename Value,
         typename ValueStorage
 >
-void Node<Key, Value, ValueStorage>::addKey(size_t index, size_t val_id, const Key & key, const Value & value) {
+void Node<Key, Value, ValueStorage>::addKey(size_t index, size_t val_id, const Key & key,
+                                            const Value & value, ValueStorage & value_storage) {
     assert(node_type == NodeType::LEAF);
-    leafNode.addKey(index, val_id, key, value);
+    leafNode.addKey(index, val_id, key, value, value_storage);
 }
 
 template <
@@ -429,12 +425,9 @@ template <
         typename Value,
         typename ValueStorage
 >
-void Node<Key, Value, ValueStorage>::deleteKey(size_t index) {
-    assert(node_type != NodeType::UNKNOWN);
-    if (node_type == NodeType::LEAF)
-        leafNode.deleteKey(index);
-    else
-        innerNode.deleteKey(index);
+void Node<Key, Value, ValueStorage>::deleteKey(size_t index, ValueStorage & value_storage) {
+    assert(node_type == NodeType::LEAF);
+    leafNode.deleteKey(index, value_storage);
 }
 
 // ===== Inner node methods =====
@@ -488,6 +481,17 @@ template <
 void Node<Key, Value, ValueStorage>::setKey(size_t index, const Key & new_key) {
     assert(node_type == NodeType::INNER);
     return innerNode.setKey(index, new_key);
+}
+
+
+template <
+        typename Key,
+        typename Value,
+        typename ValueStorage
+>
+void Node<Key, Value, ValueStorage>::deleteKey(size_t index) {
+    assert(node_type == NodeType::INNER);
+    innerNode.deleteKey(index);
 }
 
 #endif //TERM_PROJECT_NODE_H

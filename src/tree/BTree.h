@@ -13,13 +13,15 @@ protected:
 
     const size_t node_size;
 
-    static size_t next_node_id;
+    //static size_t next_node_id;
+    size_t next_node_id = 1;
     static size_t next_value_id;
 
     std::unordered_map<size_t, BNode> buffer;
     std::unordered_map<size_t, BNode> changes;
 
-    NodeStorage storage;
+    NodeStorage node_storage;
+    ValueStorage value_storage;
 
     size_t genNodeId();
     size_t genValueId();
@@ -54,8 +56,8 @@ public:
 //template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 //NodeStorage BTree<Key, Value, NodeStorage, ValueStorage>::storage;
 
-template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-size_t BTree<Key, Value, NodeStorage, ValueStorage>::next_node_id = 0;
+//template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
+//size_t BTree<Key, Value, NodeStorage, ValueStorage>::next_node_id = 0;
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 size_t BTree<Key, Value, NodeStorage, ValueStorage>::next_value_id = 0;
@@ -77,7 +79,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::print(BNode node) const {
         std::cerr << "Prev: " << node.getPrev() << " Next: " << node.getNext() << "\n";
         std::cerr << "Key    Value\n";
         for (size_t index = 0; index < node.size(); index++)
-            std::cerr << node.getKey(index) <<  " " << node.getValue(index) << std::endl;
+            std::cerr << node.getKey(index) <<  " " << node.getValue(index, value_storage) << std::endl;
     }
     else {
         std::cerr << "Key    Child\n";
@@ -110,10 +112,10 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::delNode(BNode & node) {
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 void BTree<Key, Value, NodeStorage, ValueStorage>::commit(const BNode & node) {
-    auto index = this->storage.find(node.getId());
-    if (index != this->storage.end())
-        this->storage.erase(index);
-    this->storage.insert(std::make_pair(node.getId(), node.toBinary()));
+    auto index = this->node_storage.find(node.getId());
+    if (index != this->node_storage.end())
+        this->node_storage.erase(index);
+    this->node_storage.insert(std::make_pair(node.getId(), node.toBinary()));
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -124,9 +126,9 @@ Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::get
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
-    if (this->storage.find(id) == storage.end())
+    if (this->node_storage.find(id) == node_storage.end())
         std::cerr << id << " =(\n";
-    return buffer[id] = BNode(this->storage.find(id)->second);
+    return buffer[id] = BNode(this->node_storage.find(id)->second);
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -137,7 +139,7 @@ Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::get
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
-    return BNode(this->storage.find(id)->second);
+    return BNode(this->node_storage.find(id)->second);
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -194,23 +196,26 @@ template <typename Key, typename Value, typename NodeStorage, typename ValueStor
 Key BTree<Key, Value, NodeStorage, ValueStorage>::set(BNode node, const Key & key, const Value & value) {
     if (node.isLeaf()) {
         size_t index = findKey(node, key);
-        if (index == -1)
-            node.addKey(node.find(key, this->comparator), genValueId(), key, value);
-        else
-            node.setValue(value, node.find(key, this->comparator));
+        if (index == -1) {
+            node.addKey(node.find(key, this->comparator), genValueId(), key, value, value_storage);
+        }
+        else {
+            node.setValue(value, node.find(key, this->comparator), value_storage);
+        }
         saveNode(node);
         return node.getMax();
     }
-
     size_t index = node.find(key, this->comparator);
     if (index >= node.size()) --index;
     Key mx_key = set(getNode(node.getChild(index)), key, value);
     node.updateKey(std::move(mx_key), index);
     BNode child = getNode(node.getChild(index));
-    if (child.size() == node_size * 2)
+    if (child.size() == node_size * 2) {
         normalizeNodeOverflow(node, index);
-    else
+    }
+    else {
         saveNode(node);
+    }
 
     return node.getMax();
 }
@@ -222,7 +227,7 @@ Key BTree<Key, Value, NodeStorage, ValueStorage>::del(BNode node, const Key & ke
         if (index == -1)
             throw std::runtime_error("del: This key does not exist");
         else
-            node.deleteKey(node.find(key, this->comparator));
+            node.deleteKey(node.find(key, this->comparator), value_storage);
         saveNode(node);
         return node.size() > 0 ? node.getMax() : key;
     }
@@ -281,7 +286,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::findNode(const Key & key, BNo
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 BTree<Key, Value, NodeStorage, ValueStorage>::BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz)
         : node_size(node_sz),
-        BTree::BaseBTreeClass(cmp, genNodeId()){ commit(this->root); }
+        BTree::BaseBTreeClass(cmp, 0){ commit(this->root); }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 const Value BTree<Key, Value, NodeStorage, ValueStorage>::get(const Key & key) const {
@@ -291,7 +296,7 @@ const Value BTree<Key, Value, NodeStorage, ValueStorage>::get(const Key & key) c
     if (index == -1)
         throw std::runtime_error("get: This key does not exist");
     else
-        return node.getValue(index);
+        return node.getValue(index, value_storage);
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -314,12 +319,13 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Va
         saveNode(std::get<1>(pair));
         saveNode(this->root);
     }
-
     std::set<size_t> tmp;
-    for (auto & node: changes)
+    for (auto & node: changes) {
         tmp.insert(node.first);
-    for (auto & el: tmp)
+    }
+    for (auto & el: tmp) {
         commit(changes[el]);
+    }
 
     changes.clear();
     buffer.clear();
@@ -362,7 +368,7 @@ std::vector<std::pair<Key, Value>> & BTree<Key, Value, NodeStorage, ValueStorage
         if (l == r)
             break;
         for (size_t index = l; index < r; ++index)
-            dest.push_back(std::make_pair(node.getKey(index), node.getValue(index)));
+            dest.push_back(std::make_pair(node.getKey(index), node.getValue(index, value_storage)));
         if (node.getNext() == -1 || r < node.size())
             break;
         node = getNode(node.getNext());

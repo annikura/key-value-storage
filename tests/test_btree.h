@@ -86,7 +86,6 @@ TEST(BTree, BranchedAdd) {
         EXPECT_EQ(arr[index].second, tree.get(arr[index].first));
 }
 
-
 TEST(BTree, BigAdd) {
     typedef int key_t;
     typedef int value_t;
@@ -296,11 +295,6 @@ TEST(BTree, Brute) {
             }
         }
     }
-}
-
-TEST(BTreeNegative, Simple) {
-
-
 }
 
 #endif //TERM_PROJECT_TEST_BTREE_H

@@ -34,24 +34,26 @@ TEST(LeafSetters, Simple) {
 }
 
 TEST(LeafAdd, Unary) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<std::string, std::string, std::map<size_t , std::vector<uint8_t>>> node;
     size_t value_id = 0;
     std::string key = "10x", value = "25x";
 
-    node.addKey(0, value_id, key, value);
+    node.addKey(0, value_id, key, value, storage);
 
     EXPECT_EQ(key, node.getKey(0));
-    EXPECT_EQ(value, node.getValue(0));
+    EXPECT_EQ(value, node.getValue(0, storage));
     EXPECT_EQ(0, node.find(key, std::less<std::string>()));
 }
 
 TEST(LeafAdd, SeveralInOrder) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<std::string, char, std::map<size_t , std::vector<uint8_t>>> node;
 
     for (char i = 'a'; i <= 'z'; i++) {
         std::string s;
         s += i;
-        node.addKey(node.find(s, std::less<std::string>()), i - 'a', s, i);
+        node.addKey(node.find(s, std::less<std::string>()), i - 'a', s, i, storage);
     }
 
     for (char i = 'a'; i <= 'z'; i++) {
@@ -59,18 +61,19 @@ TEST(LeafAdd, SeveralInOrder) {
         s += i;
         EXPECT_EQ(i - 'a', node.find(s, std::less<std::string>()));
         EXPECT_EQ(s, node.getKey(i - 'a'));
-        EXPECT_EQ(i, node.getValue(i - 'a'));
+        EXPECT_EQ(i, node.getValue(i - 'a', storage));
     }
 }
 
 
 TEST(LeafAdd, SeveralInReverseOrder) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<std::string, char, std::map<size_t, std::vector<uint8_t>>> node;
 
     for (char i = 'z'; i >= 'a'; i--) {
         std::string s;
         s += i;
-        node.addKey(node.find(s, std::less<std::string>()), abs(i - 'z'), s, i);
+        node.addKey(node.find(s, std::less<std::string>()), abs(i - 'z'), s, i, storage);
     }
 
     for (char i = 'a'; i <= 'z'; i++) {
@@ -78,11 +81,12 @@ TEST(LeafAdd, SeveralInReverseOrder) {
         s += i;
         EXPECT_EQ(i - 'a', node.find(s, std::less<std::string>()));
         EXPECT_EQ(s, node.getKey(i - 'a'));
-        EXPECT_EQ(i, node.getValue(i - 'a'));
+        EXPECT_EQ(i, node.getValue(i - 'a', storage));
     }
 }
 
 TEST(LeafAdd, BigRandom1) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<int, int, std::map<size_t, std::vector<uint8_t>>> node;
     srand(179239);
     int max = 0;
@@ -95,19 +99,20 @@ TEST(LeafAdd, BigRandom1) {
             key = rand();
         map[key] = val;
 
-        node.addKey(node.find(key, std::less<int>()), i, key, val);
+        node.addKey(node.find(key, std::less<int>()), i, key, val, storage);
         max = std::max(max, key);
         EXPECT_EQ(max, node.getMax());
     }
 
     for (auto & el: map) {
         EXPECT_EQ(el.first, node.getKey(node.find(el.first, std::less<int>())));
-        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>())));
+        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>()), storage));
     }
 }
 
 
 TEST(LeafAdd, BigRandom2) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(239179);
 
@@ -119,16 +124,17 @@ TEST(LeafAdd, BigRandom2) {
             key = rand();
         map[key] = val;
 
-        node.addKey(node.find(key, std::less<int>()), i, key, val);
+        node.addKey(node.find(key, std::less<int>()), i, key, val, storage);
     }
 
     for (auto & el: map) {
         EXPECT_EQ(el.first, node.getKey(node.find(el.first, std::less<int>())));
-        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>())));
+        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>()), storage));
     }
 }
 
 TEST(LeafSetValue, Big1) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
     srand(179239);
 
@@ -140,25 +146,26 @@ TEST(LeafSetValue, Big1) {
             key = rand();
         map[key] = val;
 
-        node.addKey(node.find(key, std::less<int>()), i, key, val);
+        node.addKey(node.find(key, std::less<int>()), i, key, val, storage);
     }
 
     for (auto & el: map) {
         if (rand() % 2) {
             int val = rand();
             map[el.first] = val;
-            node.setValue(val, node.find(el.first, std::less<int>()));
+            node.setValue(val, node.find(el.first, std::less<int>()), storage);
         }
     }
 
     for (auto & el: map) {
         EXPECT_EQ(el.first, node.getKey(node.find(el.first, std::less<int>())));
-        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>())));
+        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>()), storage));
     }
 }
 
 
 TEST(LeafSetValue, Big2) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<int, int, std::map<size_t, std::vector<uint8_t>>> node;
     srand(239179);
 
@@ -170,31 +177,32 @@ TEST(LeafSetValue, Big2) {
             key = rand();
         map[key] = val;
 
-        node.addKey(node.find(key, std::less<int>()), i, key, val);
+        node.addKey(node.find(key, std::less<int>()), i, key, val, storage);
     }
 
     for (auto & el: map) {
         if (rand() % 2) {
             int val = rand();
             map[el.first] = val;
-            node.setValue(val, node.find(el.first, std::less<int>()));
+            node.setValue(val, node.find(el.first, std::less<int>()), storage);
         }
     }
 
     for (auto & el: map) {
         EXPECT_EQ(el.first, node.getKey(node.find(el.first, std::less<int>())));
-        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>())));
+        EXPECT_EQ(el.second, node.getValue(node.find(el.first, std::less<int>()), storage));
     }
 }
 
 TEST(LeafSplit, Simple) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
 
     int key1 = 1, key2 = 2, val1 = 3, val2 = 4;
     size_t id1 = 444, id2 = 555;
     size_t prev = 100, next = 200;
-    node.addKey(0, 0, key1, val1);
-    node.addKey(1, 1, key2, val2);
+    node.addKey(0, 0, key1, val1, storage);
+    node.addKey(1, 1, key2, val2, storage);
     node.setPrev(prev);
     node.setNext(next);
 
@@ -205,25 +213,26 @@ TEST(LeafSplit, Simple) {
     EXPECT_EQ(id2, std::get<0>(ret).getNext());
     EXPECT_EQ(prev, std::get<0>(ret).getPrev());
     EXPECT_EQ(key1, std::get<0>(ret).getKey(0));
-    EXPECT_EQ(val1, std::get<0>(ret).getValue(0));
+    EXPECT_EQ(val1, std::get<0>(ret).getValue(0, storage));
 
     EXPECT_EQ(1, std::get<1>(ret).size());
     EXPECT_EQ(id2, std::get<1>(ret).getId());
     EXPECT_EQ(id1, std::get<1>(ret).getPrev());
     EXPECT_EQ(next, std::get<1>(ret).getNext());
     EXPECT_EQ(key2, std::get<1>(ret).getKey(0));
-    EXPECT_EQ(val2, std::get<1>(ret).getValue(0));
+    EXPECT_EQ(val2, std::get<1>(ret).getValue(0, storage));
 }
 
 
 TEST(LeafJoin, Simple) {
+    std::map<size_t, std::vector<uint8_t>> storage;
     LeafNode<int, int, std::map<size_t , std::vector<uint8_t>>> node;
 
     int key1 = 1, key2 = 2, val1 = 3, val2 = 4;
     size_t id1 = 444, id2 = 555;
     size_t prev = 100, next = 200;
-    node.addKey(0, 0, key1, val1);
-    node.addKey(1, 1, key2, val2);
+    node.addKey(0, 0, key1, val1, storage);
+    node.addKey(1, 1, key2, val2, storage);
     node.setPrev(prev);
     node.setNext(next);
 
@@ -238,9 +247,9 @@ TEST(LeafJoin, Simple) {
     EXPECT_EQ(prev, new_node.getPrev());
     EXPECT_EQ(next, new_node.getNext());
     EXPECT_EQ(key1, new_node.getKey(0));
-    EXPECT_EQ(val1, new_node.getValue(0));
+    EXPECT_EQ(val1, new_node.getValue(0, storage));
     EXPECT_EQ(key2, new_node.getKey(1));
-    EXPECT_EQ(val2, new_node.getValue(1));
+    EXPECT_EQ(val2, new_node.getValue(1, storage));
 }
 
 #endif //TERM_PROJECT_TEST_LEAF_H

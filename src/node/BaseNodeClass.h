@@ -17,7 +17,7 @@ protected:
     bool is_deleted = false;
     std::vector<Key> keys;
 public:
-    BaseNodeClass() : id(-1), is_deleted(false) { };
+    BaseNodeClass() : id(-1), is_deleted(false) {};
     BaseNodeClass(const std::vector<uint8_t> & src, size_t & beg) : BaseNodeClass()
     {
         size_t size;

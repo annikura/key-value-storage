@@ -14,7 +14,6 @@ protected:
 
     std::vector<size_t> values;
     size_t next = -1, prev = -1;
-    static ValueStorage value_storage;
 public:
 // ===== Base node methods =====
     LeafNode();
@@ -37,17 +36,15 @@ public:
     void setNext(size_t id);
     void setPrev(size_t id);
 
-    Value getValue(size_t index) const;
-    void setValue(const Value & value, size_t index);
+    Value getValue(size_t index, const ValueStorage & value_storage) const;
+    void setValue(const Value & value, size_t index, ValueStorage & value_storage);
 
-    void addKey(size_t  index, size_t val_id, const Key & key, const Value & value);
-    void deleteKey(size_t index);
+    void addKey(size_t  index, size_t val_id, const Key & key, const Value & value, ValueStorage & value_storage);
+    void deleteKey(size_t index, ValueStorage & value_storage);
 
     void join(const leaf_node_t & other);
 };
 
-template <typename Key, typename Value, typename ValueStorage>
-ValueStorage LeafNode<Key, Value, ValueStorage>::value_storage;
 
 template <typename Key, typename Value, typename ValueStorage>
 LeafNode<Key, Value, ValueStorage>::LeafNode() :
@@ -173,33 +170,33 @@ void LeafNode<Key, Value, ValueStorage>::setPrev(size_t id) {
 }
 
 template <typename Key, typename Value, typename ValueStorage>
-Value LeafNode<Key, Value, ValueStorage>::getValue(size_t index) const {
+Value LeafNode<Key, Value, ValueStorage>::getValue(size_t index, const ValueStorage & value_storage) const {
     assert(index < values.size());
     assert(!this->is_deleted);
     return deserialize<Value>(value_storage.find(values[index])->second, 0);
 }
 
 template <typename Key, typename Value, typename ValueStorage>
-void LeafNode<Key, Value, ValueStorage>::setValue(const Value & value, size_t index) {
+void LeafNode<Key, Value, ValueStorage>::setValue(const Value & value, size_t index, ValueStorage & value_storage) {
     assert(index < values.size());
     assert(!this->is_deleted);
-    auto it = this->value_storage.find(values[index]);
-    if (it != this->value_storage.end())
-        this->value_storage.erase(it);
-    this->value_storage.insert(std::make_pair(values[index], serialize(value)));
+    auto it = value_storage.find(values[index]);
+    if (it != value_storage.end())
+        value_storage.erase(it);
+    value_storage.insert(std::make_pair(values[index], serialize(value)));
 }
 
 template <typename Key, typename Value, typename ValueStorage>
-void LeafNode<Key, Value, ValueStorage>::addKey(size_t index, size_t val_id, const Key & key, const Value & value) {
+void LeafNode<Key, Value, ValueStorage>::addKey(size_t index, size_t val_id, const Key & key, const Value & value, ValueStorage & value_storage) {
     assert(index <= this->keys.size());
     assert(!this->is_deleted);
     this->keys.insert(this->keys.begin() + index, key);
     values.insert(values.begin() + index, val_id);
-    setValue(value, index);
+    setValue(value, index, value_storage);
 }
 
 template <typename Key, typename Value, typename ValueStorage>
-void LeafNode<Key, Value, ValueStorage>::deleteKey(size_t index) {
+void LeafNode<Key, Value, ValueStorage>::deleteKey(size_t index, ValueStorage & value_storage) {
     assert(index < this->size());
     assert(!this->is_deleted);
     value_storage.erase(value_storage.find(values[index]));

@@ -14,8 +14,7 @@ set(SOURCE_FILES
                  src/io/IOStorage.h
                  src/node/Node.h
                  src/tree/BaseBTreeClass.h
-                 src/utilities.cpp
-                 src/tree/BTree.h
+        src/tree/BTree.h
                  src/io/FileArray.h
         src/io/FileArray.cpp)
 
