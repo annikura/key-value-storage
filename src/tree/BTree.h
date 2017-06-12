@@ -138,8 +138,6 @@ Node<Key, Value, ValueStorage> BTree<Key, Value, NodeStorage, ValueStorage>::get
     it = buffer.find(id);
     if (it != buffer.end())
         return it->second;
-    if (this->node_storage.find(id) == node_storage.end())
-        std::cerr << id << " =(\n";
     return buffer[id] = BNode(this->node_storage.find(id)->second);
 }
 
