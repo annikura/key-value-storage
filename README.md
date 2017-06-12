@@ -43,6 +43,7 @@
     
 ### Руководство к запуску
 
+    git clone https://github.com/annikura/key-value-storage.git
     cd key-value-storage
     cmake CMakeLists.txt
  Далее в зависимости от целей можно воспользоваться командами 
