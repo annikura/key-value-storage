@@ -5,14 +5,16 @@
 #include <ios>
 #include <fstream>
 #include "../utilities.h"
+#include "Journal.h"
 
 class FileArray {
 private:
     std::fstream fs;
     size_t sz = -1;
     const size_t N;
+    Journal journal;
 public:
-    FileArray(std::string filename, size_t blk_sz, bool rewrite=false);
+    FileArray(const std::string & filename, size_t blk_sz, bool rewrite=false);
     ~FileArray();
     size_t size();
     size_t countPosition(size_t id);
@@ -61,10 +63,17 @@ template <typename T>
 void FileArray::write(const T & src, size_t beg, size_t blk_sz) {
     if (beg == -1) beg = countPosition(sz);
     if (blk_sz == -1) blk_sz = N;
+
+    if (sz != -1 && beg != sz * N + sizeof(size_t)) {
+        std::vector<uint8_t> tmp(blk_sz);
+        fs.seekg(beg, std::ios_base::beg);
+        //std::cerr << beg << " " <<  sz << "\n";
+        fs.read(reinterpret_cast<char *>(&tmp[0]), blk_sz);
+        journal.journalize(beg, reinterpret_cast<char *>(&tmp[0]), blk_sz);
+    }
     fs.seekp(beg, std::ios_base::beg);
     fs.write(reinterpret_cast<char *>(const_cast<T*>(&src)), blk_sz);
-    //fs.sync();
-    //fs.flush();
+
 }
 
 

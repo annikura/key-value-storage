@@ -1,22 +1,22 @@
 #ifndef TERM_PROJECT_LIBRARY_H
 #define TERM_PROJECT_LIBRARY_H
 
-#include "tree/BTree.h"
-#include "io/IOStorage.h"
-
+#include "src/tree/BTree.h"
+#include "src/io/IOStorage.h"
 
 template <typename Key, typename Value>
 class ValueStorage : public IOStorage {
     const static std::string type_prefix;
 public:
-    ValueStorage() : IOStorage(type_prefix + "^value_storage",
-                               type_prefix + "^value_stack",
-                               type_prefix + "^value_table",
-                               sizeof(Value)) {};
+    ValueStorage(const std::string & name, bool rewrite = true) :
+            IOStorage(type_prefix + "^value_storage" + "~" + name,
+                      type_prefix + "^value_stack" + "~" + name,
+                      type_prefix + "^value_table"+ "~" + name,
+                      sizeof(Value), rewrite) {};
 };
 
 template <typename Key, typename Value>
-const std::string ValueStorage<Key, Value>::type_prefix = "data/" +
+const std::string ValueStorage<Key, Value>::type_prefix = "key_value_storage_data/" +
                                                           (std::string)typeid(Key).name() + "^" +
                                                           (std::string)typeid(Value).name();
 
@@ -25,11 +25,12 @@ class NodeStorage : public IOStorage {
     static const size_t ELEMENTS_IN_NODE = 512;
     static const std::string type_prefix;
 public:
-    NodeStorage() : IOStorage( type_prefix + "^node_storage",
-                               type_prefix + "^node_stack",
-                               type_prefix + "^node_table",
-                               sizeof(size_t) * (2 + 2 + ELEMENTS_IN_NODE) +  // id + size + next + prev + values * Elements_in_block
-                               sizeof(Key) * ELEMENTS_IN_NODE) {};            // keys
+    NodeStorage(const std::string & name, bool rewrite = true) :
+            IOStorage( type_prefix + "^node_storage" + "~" + name,
+                       type_prefix + "^node_stack" + "~" + name,
+                       type_prefix + "^node_table" + "~" + name,
+                       sizeof(size_t) * (2 + 2 + ELEMENTS_IN_NODE) +  // id + size + next + prev + values * Elements_in_block
+                       sizeof(Key) * ELEMENTS_IN_NODE) {};            // keys
 };
 
 
@@ -43,12 +44,9 @@ class KeyValueStorage : public BTree<Key, Value, NodeStorage<Key, Value>, ValueS
 private:
     static size_t active_trees;
 public:
-    KeyValueStorage() : BTree<Key, Value, NodeStorage<Key, Value>, ValueStorage<Key, Value>>::BTree(Comparator()) {
-        ++active_trees;
-    }
+    KeyValueStorage(const std::string & name, bool restore = false) :
+            BTree<Key, Value, NodeStorage<Key, Value>, ValueStorage<Key, Value>>::BTree(Comparator(), name, !restore) {
 
-    ~KeyValueStorage() {
-        --active_trees;
     }
 };
 

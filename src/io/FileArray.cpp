@@ -4,15 +4,18 @@ void FileArray::popBack() {
     write(--sz, 0, sizeof(sz));
 }
 
-FileArray::FileArray(std::string filename, size_t blk_sz, bool rewrite) : N(blk_sz) {
+FileArray::FileArray(const std::string & filename, size_t blk_sz, bool rewrite) :
+        N(blk_sz),
+        journal(filename, rewrite)
+{
     if (rewrite) {
+        system("mkdir -p key_value_storage_data");
         std::system(("touch " + filename).c_str());
         std::system(("rm -f " + filename).c_str());
         std::system(("touch " + filename).c_str());
     }
     fs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
     fs.open(filename, std::ios_base::out | std::ios_base::in | std::ios_base::binary);
-
     if (rewrite) {
         write<size_t>(0, 0, sizeof(sz));
         sz = 0;
@@ -21,7 +24,7 @@ FileArray::FileArray(std::string filename, size_t blk_sz, bool rewrite) : N(blk_
     }
 }
 FileArray::~FileArray() {
-    fs.close();
+    //fs.close();
 }
 
 size_t FileArray::size() {

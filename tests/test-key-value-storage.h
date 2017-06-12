@@ -2,12 +2,12 @@
 #define TERM_PROJECT_TEST_KEY_VALUE_STORAGE_H
 
 #include "gtest/gtest.h"
-#include "../src/key_value_storage.h"
+#include "../key_value_storage.h"
 
 
 
 TEST(KeyValueStorage, Brute) {
-    KeyValueStorage<int, int> tree;
+    KeyValueStorage<int, int> tree("file");
 
     size_t n = 10007;
     std::vector<std::pair<int, int>> arr;

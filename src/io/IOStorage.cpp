@@ -2,20 +2,31 @@
 #include <iomanip>
 #include "IOStorage.h"
 
-IOStorage::IOStorage(std::string stor_name, std::string stck_name, std::string tbl_name, size_t blck_size, bool rewrite) :
+IOStorage::IOStorage(const std::string & stor_name,
+                     const std::string & stck_name,
+                     const std::string & tbl_name,
+                     size_t blck_size, bool rewrite) :
     storage_file(stor_name),
     stack_file(stck_name),
     table_file(tbl_name),
     block_size(blck_size)
-    {
-        FileArray  name_f(storage_file, block_size, rewrite);
-        FileArray stack_f(stack_file, sizeof(size_t), rewrite);
-        FileArray table_f(table_file, sizeof(size_t), rewrite);
+{
+    FileArray  name_f(storage_file, block_size, rewrite);
+    FileArray stack_f(stack_file, sizeof(size_t), rewrite);
+    FileArray table_f(table_file, sizeof(size_t), rewrite);
 
+    if (!rewrite) {
+        auto f = Journal(storage_file);
+        f = Journal(stack_file);
+        f = Journal(table_file);
+    }
 }
 
 IOStorage::~IOStorage() {
     system(("rm -f " + storage_file + " " + table_file + " " + stack_file + "\n").c_str());
+    Journal::deleteJournal(storage_file);
+    Journal::deleteJournal(table_file);
+    Journal::deleteJournal(stack_file);
 }
 
 

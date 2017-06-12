@@ -60,7 +60,10 @@ protected:
     };
 
 public:
-    IOStorage(std::string stor_name, std::string stck_name, std::string tbl_name, size_t blck_size, bool rewrite = true);
+    IOStorage(const std::string & stor_name,
+              const std::string & stck_name,
+              const std::string & tbl_name,
+              size_t blck_size, bool rewrite = true);
     ~IOStorage();
     ProxyIt find(size_t id) const;
     void insert(std::pair<size_t, std::vector<uint8_t>>);

@@ -9,12 +9,9 @@ static std::string path = "tests/test_files/file";
 
 class FileArrayF : public testing::Test{
 public:
-    void setUp() {
-        system(("touch " + path).c_str());
-    }
-
     void TearDown() {
         system(("rm -f " + path).c_str());
+        system(("rm -f " + path + ".journal").c_str());
     }
 };
 

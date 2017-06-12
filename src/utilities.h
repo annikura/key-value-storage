@@ -30,6 +30,15 @@ T deserialize(const std::vector<uint8_t> & src, size_t index) {
     return *reinterpret_cast<T*>(const_cast<uint8_t *>(&src[index]));
 }
 
-size_t getFileSize(const std::string & filename);
+template <typename T>
+struct is_journalized {
+    template <typename U>
+    static char test(typename U::journal*);
+
+    template <typename U>
+    static int test(U* x);
+
+    static const bool value = (sizeof(test<T>(nullptr)) == 1);
+};
 
 #endif //TERM_PROJECT_UTILITIES_H

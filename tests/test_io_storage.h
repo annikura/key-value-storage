@@ -86,24 +86,4 @@ TEST(IOStorage, BigDel) {
         else
             EXPECT_EQ(storage.end(), storage.find(i));
 }
-
-
-TEST(TimeConsumer, Simple) {
-    system("touch file");
-    system("rm -f file");
-    system("touch file");
-
-    size_t n = 2000, sz = 4096;
-    for (size_t i = 0; i < n; i++) {
-        std::fstream file;
-        file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
-        file.open("file", std::ios_base::in | std::ios_base::out | std::ios_base::app   );
-        std::vector<uint8_t> vec(sz, i);
-        file.write(reinterpret_cast<char *>(&vec[0]), sz);
-        file.seekg(0);
-        file.flush();
-        file.seekg(std::ios_base::end);
-        file.close();
-    }
-}
 #endif //TERM_PROJECT_TEST_IO_STORAGE_H

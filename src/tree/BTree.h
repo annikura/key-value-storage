@@ -13,9 +13,8 @@ protected:
 
     const size_t node_size;
 
-    //static size_t next_node_id;
     size_t next_node_id = 1;
-    static size_t next_value_id;
+    size_t next_value_id = 0;
 
     std::unordered_map<size_t, BNode> buffer;
     std::unordered_map<size_t, BNode> changes;
@@ -23,6 +22,7 @@ protected:
     NodeStorage node_storage;
     ValueStorage value_storage;
 
+    void clearBuffer();
     size_t genNodeId();
     size_t genValueId();
 
@@ -43,24 +43,36 @@ protected:
     void insertIntoList(const BNode & node);
 
     void findNode(const Key & key, BNode & node) const;
+
+    template <typename T>
+    typename std::enable_if<is_journalized<T>::value, void>::type clearJournal(T & obj) {
+        obj.clearJournal();
+    }
+
+    template <typename T>
+    typename std::enable_if<!is_journalized<T>::value, void>::type clearJournal(T & obj) {}
+
 public:
     void print(BNode node = InnerNode<Key>()) const;
 
     BTree(std::function<bool(const Key &, const Key &)> cmp, size_t node_sz = 256);
+    BTree(std::function<bool(const Key &, const Key &)> cmp, const std::string & name, bool rewrite = true, size_t node_sz = 256);
     const Value get(const Key & key) const override;
     void set(const Key & key, const Value & value) override;
     void del(const Key & key) override ;
     std::vector<std::pair<Key, Value>> & getRange(const Key & left, const Key & right, std::vector<std::pair<Key, Value>> & dest) const override;
 };
 
-//template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-//NodeStorage BTree<Key, Value, NodeStorage, ValueStorage>::storage;
-
-//template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-//size_t BTree<Key, Value, NodeStorage, ValueStorage>::next_node_id = 0;
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
-size_t BTree<Key, Value, NodeStorage, ValueStorage>::next_value_id = 0;
+void BTree<Key, Value, NodeStorage, ValueStorage>::clearBuffer() {
+    buffer.clear();
+    changes.clear();
+
+    clearJournal(node_storage);
+    clearJournal(value_storage);
+}
+
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 size_t BTree<Key, Value, NodeStorage, ValueStorage>::genNodeId() {
@@ -288,6 +300,23 @@ BTree<Key, Value, NodeStorage, ValueStorage>::BTree(std::function<bool(const Key
         : node_size(node_sz),
         BTree::BaseBTreeClass(cmp, 0){ commit(this->root); }
 
+
+template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
+BTree<Key, Value, NodeStorage, ValueStorage>::BTree(std::function<bool(const Key &, const Key &)> cmp,
+                                                    const std::string & name,
+                                                    bool rewrite, size_t node_sz)
+        : node_size(node_sz),
+          node_storage(name, rewrite),
+          value_storage(name, rewrite),
+          BTree::BaseBTreeClass(cmp, 0)
+{
+    if (rewrite)
+        commit(this->root);
+    else
+        this->root = getNode(0);
+}
+
+
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
 const Value BTree<Key, Value, NodeStorage, ValueStorage>::get(const Key & key) const {
     BNode node(this->root);
@@ -327,8 +356,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::set(const Key & key, const Va
         commit(changes[el]);
     }
 
-    changes.clear();
-    buffer.clear();
+    clearBuffer();
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
@@ -353,9 +381,7 @@ void BTree<Key, Value, NodeStorage, ValueStorage>::del(const Key & key) {
     for (auto & el: tmp)
         commit(changes[el]);
 
-    buffer.clear();
-    changes.clear();
-
+    clearBuffer();
 }
 
 template <typename Key, typename Value, typename NodeStorage, typename ValueStorage>
