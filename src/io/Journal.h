@@ -9,7 +9,17 @@ class Journal {
 private:
     std::fstream file;
     size_t next_position = -1;
+    template <typename T>
+    void read(T & obj, size_t pos = -1, size_t size = sizeof(T)) {
+        if (pos != -1) file.seekg(pos, std::ios_base::beg);
+        file.read(reinterpret_cast<char *>(&obj), size);
+    }
 
+    template <typename T>
+    void write(const T & obj, size_t pos = -1, size_t size = sizeof(T)) {
+        if (pos != -1) file.seekp(pos, std::ios_base::beg);
+        file.write(reinterpret_cast<const char *>(&obj), size);
+    }
 
     static std::string journalName(const std::string & filename);
     void readNextPosition();
