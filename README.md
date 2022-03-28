@@ -45,6 +45,7 @@
 
     git clone https://github.com/annikura/key-value-storage.git
     cd key-value-storage
+    mkdir data
     cmake CMakeLists.txt
  Далее в зависимости от целей можно воспользоваться командами 
     
